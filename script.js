@@ -8,17 +8,25 @@ let history = [];
 let calcPlayer = null;
 let calcInput = '';
 
+const lpSound = new Audio('lifedrop_sound.mp3');
+
+function playSound() {
+    lpSound.currentTime = 0;
+    lpSound.play();
+}
+
 function updateDisplay(player) {
     document.getElementById('lp' + player).textContent = lp[player];
 }
 
 function animateLP(player, from, to, type) {
     const el = document.getElementById('lp' + player);
-    const duration = 800;
+    const duration = 2000;
     const startTime = performance.now();
     const diff = to - from;
 
     el.classList.add(type);
+    playSound(type);
 
     function tick(now) {
         const elapsed = now - startTime;

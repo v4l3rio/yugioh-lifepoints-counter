@@ -149,7 +149,7 @@ body {
 .bottom-bar {
     background: var(--surface);
     display: grid;
-    grid-template-columns: 2fr 2fr 1fr 1fr;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
     grid-template-rows: 1fr;
     gap: 8px;
     padding: 10px;
@@ -174,6 +174,8 @@ body {
     align-items: center;
     justify-content: center;
     gap: 6px;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .bottom-btn svg {
@@ -492,7 +494,11 @@ body {
     .timer-display { font-size: 1.1rem; }
     .timer-btn { width: 32px; height: 32px; font-size: 0.75rem; }
 
-    .bottom-bar { padding: 6px 10px; gap: 6px; grid-template-columns: 1fr 1fr 1fr 1fr; }
+    .players-row { flex-direction: row; }
+    .player-divider { width: 1px; height: auto; }
+    .player-1 { transform: none; }
+
+    .bottom-bar { padding: 6px 10px; gap: 6px; grid-template-columns: minmax(0,2fr) minmax(0,2fr) minmax(0,1fr) minmax(0,1fr); }
     .bottom-btn { padding: 10px 6px; font-size: 0.7rem; gap: 4px; }
     .bottom-btn svg { width: 20px; height: 20px; }
 
@@ -525,4 +531,23 @@ body {
 
 @media (orientation: portrait) {
     .calc-grid-section { display: contents; }
+
+    .bottom-bar { grid-template-columns: minmax(0,2fr) minmax(0,2fr) minmax(0,1fr) minmax(0,1fr); }
+
+    /* Stack players vertically */
+    .players-row {
+        flex-direction: column;
+    }
+
+    /* Horizontal divider */
+    .player-divider {
+        width: 100%;
+        height: 1px;
+        flex-shrink: 0;
+    }
+
+    /* Top player rotated toward opponent */
+    .player-1 {
+        transform: rotate(180deg);
+    }
 }
