@@ -35,7 +35,7 @@
 
 <!-- Bottom bar -->
 <div class="bottom-bar">
-    <button class="bottom-btn" onclick="rollDice()">
+    <button class="bottom-btn" onclick="openDice()">
         <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="4"/><circle cx="8" cy="8" r="1.2" fill="currentColor"/><circle cx="16" cy="8" r="1.2" fill="currentColor"/><circle cx="8" cy="16" r="1.2" fill="currentColor"/><circle cx="16" cy="16" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg>
         Dado
     </button>
@@ -99,11 +99,50 @@
 </div>
 
 <!-- Dice overlay -->
-<div class="dice-overlay" id="diceOverlay">
-    <div class="dice-label">Dado D6</div>
-    <div class="dice-face" id="diceFace"><span id="diceValue">?</span></div>
-    <button class="dice-btn" onclick="rollDice()">Ritira</button>
-    <button class="dice-close" onclick="closeDice()">Chiudi</button>
+<div class="dice-overlay" id="diceOverlay" onclick="closeDice()">
+    <div class="dice-container" onclick="event.stopPropagation()">
+        <div class="dice-wrapper" onclick="rollDice()">
+            <div class="dice" id="dice3d">
+                <div class="dice-side side-1">
+                    <div class="dot one-1"></div>
+                </div>
+                <div class="dice-side side-2">
+                    <div class="dot two-1"></div>
+                    <div class="dot two-2"></div>
+                </div>
+                <div class="dice-side side-3">
+                    <div class="dot three-1"></div>
+                    <div class="dot three-2"></div>
+                    <div class="dot three-3"></div>
+                </div>
+                <div class="dice-side side-4">
+                    <div class="dot four-1"></div>
+                    <div class="dot four-2"></div>
+                    <div class="dot four-3"></div>
+                    <div class="dot four-4"></div>
+                </div>
+                <div class="dice-side side-5">
+                    <div class="dot five-1"></div>
+                    <div class="dot five-2"></div>
+                    <div class="dot five-3"></div>
+                    <div class="dot five-4"></div>
+                    <div class="dot five-5"></div>
+                </div>
+                <div class="dice-side side-6">
+                    <div class="dot six-1"></div>
+                    <div class="dot six-2"></div>
+                    <div class="dot six-3"></div>
+                    <div class="dot six-4"></div>
+                    <div class="dot six-5"></div>
+                    <div class="dot six-6"></div>
+                </div>
+            </div>
+        </div>
+        <div class="dice-buttons">
+            <button class="dice-btn" onclick="rollDice()">Ritira</button>
+            <button class="dice-close" onclick="closeDice()">Chiudi</button>
+        </div>
+    </div>
 </div>
 
 <!-- Confirm overlay -->

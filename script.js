@@ -245,24 +245,31 @@ function resetGame(includeTimer) {
     if (includeTimer) resetTimer();
 }
 
+function openDice() {
+    document.getElementById('diceOverlay').classList.add('active');
+}
+
 function rollDice() {
-    const overlay = document.getElementById('diceOverlay');
-    const face = document.getElementById('diceFace');
-    const val = document.getElementById('diceValue');
-    overlay.classList.add('active');
-    face.classList.remove('rolling');
-    void face.offsetWidth;
-    face.classList.add('rolling');
-    val.textContent = '?';
-    let rolls = 0;
-    const interval = setInterval(() => {
-        val.textContent = Math.floor(Math.random() * 6) + 1;
-        rolls++;
-        if (rolls > 8) {
-            clearInterval(interval);
-            val.textContent = Math.floor(Math.random() * 6) + 1;
-        }
-    }, 60);
+    const dice = document.getElementById('dice3d');
+
+    // Remove previous show class
+    for (let i = 1; i <= 6; i++) {
+        dice.classList.remove('show-' + i);
+    }
+
+    // Reset position instantly (no transition)
+    dice.style.transition = 'none';
+    dice.style.transform = 'none';
+    void dice.offsetWidth;
+
+    // Clear inline styles so CSS classes take over
+    dice.style.transition = '';
+    dice.style.transform = '';
+    void dice.offsetWidth;
+
+    // Animate to random face
+    const result = Math.floor(Math.random() * 6) + 1;
+    dice.classList.add('show-' + result);
 }
 
 function closeDice() {

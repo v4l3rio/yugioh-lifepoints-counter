@@ -410,79 +410,115 @@ body {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.94);
+    background: rgba(0,0,0,0.92);
     z-index: 100;
     align-items: center;
     justify-content: center;
-    flex-direction: column;
-    gap: 28px;
 }
 
 .dice-overlay.active { display: flex; }
 
-.dice-label {
-    font-size: 0.8rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 5px;
-    color: var(--text-dim);
-}
-
-.dice-face {
-    width: 140px;
-    height: 140px;
-    background: var(--text);
-    border-radius: 20px;
+.dice-container {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
+    gap: 90px;
 }
 
-.dice-face span {
-    font-size: 5rem;
-    color: var(--bg);
-    font-weight: 900;
+.dice-wrapper {
+    width: 120px;
+    height: 120px;
+    perspective: 600px;
 }
 
-@keyframes diceRoll {
-    0% { transform: rotate(0deg) scale(1); }
-    25% { transform: rotate(90deg) scale(0.8); }
-    50% { transform: rotate(180deg) scale(1.1); }
-    75% { transform: rotate(270deg) scale(0.9); }
-    100% { transform: rotate(360deg) scale(1); }
+.dice {
+    width: 120px;
+    height: 120px;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 1s ease-out;
 }
 
-.dice-face.rolling { animation: diceRoll 0.4s ease-in-out; }
+.dice-side {
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    background: #f0ede6;
+    border-radius: 14px;
+    border: 1px solid rgba(0,0,0,0.08);
+}
+
+.dice-side:nth-child(1) { transform: translateZ(60px); }
+.dice-side:nth-child(2) { transform: rotateY(-180deg) translateZ(60px); }
+.dice-side:nth-child(3) { transform: rotateY(-90deg) translateZ(60px); }
+.dice-side:nth-child(4) { transform: rotateX(90deg) translateZ(60px); }
+.dice-side:nth-child(5) { transform: rotateX(-90deg) translateZ(60px); }
+.dice-side:nth-child(6) { transform: rotateY(90deg) translateZ(60px); }
+
+.dot {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    margin: -11px 0 0 -11px;
+    border-radius: 50%;
+    background: var(--damage);
+    box-shadow: inset 2px 2px rgba(0,0,0,0.25);
+}
+
+/* Dot positions */
+.one-1                          { top: 50%; left: 50%; }
+.two-1, .three-1, .four-1, .five-1, .six-1 { top: 25%; left: 25%; }
+.two-2, .three-3, .four-4, .five-4, .six-6 { top: 75%; left: 75%; }
+.three-2, .five-5              { top: 50%; left: 50%; }
+.four-3, .five-3, .six-4       { top: 25%; left: 75%; }
+.four-2, .five-2, .six-3       { top: 75%; left: 25%; }
+.six-2                          { top: 50%; left: 25%; }
+.six-5                          { top: 50%; left: 75%; }
+
+/* Show faces */
+.dice.show-1 { transform: rotateX(720deg) rotateZ(-720deg); }
+.dice.show-2 { transform: rotateX(450deg) rotateZ(-720deg); }
+.dice.show-3 { transform: rotateY(-450deg) rotateZ(-1440deg); }
+.dice.show-4 { transform: rotateY(810deg) rotateZ(720deg); }
+.dice.show-5 { transform: rotateX(-810deg) rotateZ(-1080deg); }
+.dice.show-6 { transform: rotateX(-900deg) rotateZ(1080deg); }
+
+.dice-buttons {
+    display: flex;
+    gap: 12px;
+}
 
 .dice-btn {
-    border: none;
-    border-radius: 10px;
-    padding: 14px 32px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px 40px;
     font-family: 'Outfit', sans-serif;
-    font-size: 0.9rem;
+    font-size: 1.1rem;
     font-weight: 700;
     cursor: pointer;
     color: var(--text);
     background: var(--surface-2);
-    border: 1px solid var(--border);
     letter-spacing: 1px;
+    transition: transform 0.1s;
 }
 
 .dice-btn:active { transform: scale(0.93); }
 
 .dice-close {
-    padding: 12px 32px;
+    padding: 18px 40px;
     border: 1px solid var(--border);
+    border-radius: 16px;
     background: transparent;
     color: var(--text-dim);
-    border-radius: 10px;
     font-family: 'Outfit', sans-serif;
-    font-size: 0.8rem;
+    font-size: 1.1rem;
     font-weight: 600;
     cursor: pointer;
     letter-spacing: 1px;
-    text-transform: uppercase;
+    transition: transform 0.1s;
 }
+
+.dice-close:active { transform: scale(0.93); }
 
 /* ─── Landscape ─── */
 @media (orientation: landscape) {
@@ -524,9 +560,17 @@ body {
     .calc-key { font-size: 1.5rem; }
     .calc-key-minus, .calc-key-plus { font-size: 1.8rem; }
 
-    .dice-face { width: 110px; height: 110px; }
-    .dice-face span { font-size: 4rem; }
-    .dice-overlay { gap: 16px; }
+    .dice-wrapper { width: 100px; height: 100px; }
+    .dice { width: 100px; height: 100px; }
+    .dice-side { width: 100px; height: 100px; }
+    .dice-side:nth-child(1) { transform: translateZ(50px); }
+    .dice-side:nth-child(2) { transform: rotateY(-180deg) translateZ(50px); }
+    .dice-side:nth-child(3) { transform: rotateY(-90deg) translateZ(50px); }
+    .dice-side:nth-child(4) { transform: rotateX(90deg) translateZ(50px); }
+    .dice-side:nth-child(5) { transform: rotateX(-90deg) translateZ(50px); }
+    .dice-side:nth-child(6) { transform: rotateY(90deg) translateZ(50px); }
+    .dot { width: 18px; height: 18px; margin: -9px 0 0 -9px; }
+    .dice-container { gap: 50px; }
 }
 
 @media (orientation: portrait) {
