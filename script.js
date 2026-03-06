@@ -10,42 +10,73 @@ let calcInput = '';
 
 const lpSound = new Audio('lifedrop_sound.mp3');
 
-// Wake Lock: uses native API where supported (Android/desktop), falls back to
-// a silent looping video for iOS Safari which ignores the native API.
-const noSleep = new NoSleep();
-let wakeLockEnabled = false;
+// ── Wake Lock ────────────────────────────────────────────────────────────────
+// Strategy:
+//   1. Native Screen Wake Lock API  → Chrome / Android / Safari 16.4+ PWA
+//   2. AudioContext silent oscillator → iOS Safari (keeps audio session active,
+//      which prevents the system from locking the screen)
+// Both are started on the first user gesture and kept alive across
+// background/foreground transitions via visibilitychange.
+// ─────────────────────────────────────────────────────────────────────────────
+let _nativeLock = null;
+let _audioCtx   = null;
+let _wakeLockOn = false;
+
+async function _requestNativeLock() {
+    try {
+        _nativeLock = await navigator.wakeLock.request('screen');
+        _nativeLock.addEventListener('release', () => {
+            _nativeLock = null;
+            // Auto re-request when the sentinel is released (e.g. tab hidden then shown)
+            if (_wakeLockOn && document.visibilityState === 'visible') {
+                _requestNativeLock();
+            }
+        });
+    } catch (_) { /* not supported or denied */ }
+}
+
+function _startAudioLock() {
+    if (_audioCtx) {
+        if (_audioCtx.state === 'suspended') _audioCtx.resume();
+        return;
+    }
+    try {
+        _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc  = _audioCtx.createOscillator();
+        const gain = _audioCtx.createGain();
+        // 18 Hz is sub-bass (inaudible), gain 0.001 is ~60 dB below full scale.
+        // Non-zero so iOS recognises an active audio session.
+        gain.gain.value    = 0.001;
+        osc.frequency.value = 18;
+        osc.connect(gain);
+        gain.connect(_audioCtx.destination);
+        osc.start();
+    } catch (_) { /* AudioContext not available */ }
+}
 
 async function enableWakeLock() {
-    try {
-        await noSleep.enable();
-        wakeLockEnabled = true;
-    } catch (err) {
-        console.warn("Wake Lock failed:", err);
+    if (_wakeLockOn) return;
+    _wakeLockOn = true;
+
+    if ('wakeLock' in navigator) {
+        await _requestNativeLock();
+    } else {
+        // iOS Safari: native API not available → audio keepalive
+        _startAudioLock();
     }
 }
 
-// iOS requires a user gesture before media can play, so we hook into
-// the first touch or click to activate the wakelock.
+// Activate on first user interaction (required for both AudioContext and video APIs).
 document.addEventListener('touchstart', enableWakeLock, { once: true, passive: true });
-document.addEventListener('click', enableWakeLock, { once: true });
+document.addEventListener('click',      enableWakeLock, { once: true });
 
-// Re-enable after returning from background (native API releases on hide).
-// Force disable+enable cycle to get a fresh lock.
-document.addEventListener('visibilitychange', async () => {
-    if (document.visibilityState === 'visible' && wakeLockEnabled) {
-        noSleep.disable();
-        await enableWakeLock();
-    }
+// When returning from background: re-request native lock (it's released on hide)
+// and resume audio context if suspended.
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible' || !_wakeLockOn) return;
+    if ('wakeLock' in navigator && !_nativeLock) _requestNativeLock();
+    if (_audioCtx) _audioCtx.resume();
 });
-
-// Keepalive: iOS can pause the backing video after inactivity.
-// Re-enable periodically to ensure the lock stays active.
-setInterval(async () => {
-    if (wakeLockEnabled && document.visibilityState === 'visible') {
-        noSleep.disable();
-        await enableWakeLock();
-    }
-}, 20000);
 
 function playSound() {
     lpSound.currentTime = 0;
