@@ -10,6 +10,27 @@ let calcInput = '';
 
 const lpSound = new Audio('lifedrop_sound.mp3');
 
+async function requestWakeLock() {
+    try {
+        wakeLock = await navigator.wakeLock.request('screen');
+        console.log("Wake Lock attivo")
+
+        wakeLock.addEventListener('release', () => {
+            console.log("Wake Lock rilasciato")
+        })
+    } catch (err) {
+        console.warn("Wake Lock non disponibile: ", err)
+    }
+}
+
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState == 'visible') {
+        requestWakeLock();
+    }
+})
+
+requestWakeLock();
+
 function playSound() {
     lpSound.currentTime = 0;
     lpSound.play();
@@ -275,3 +296,4 @@ function rollDice() {
 function closeDice() {
     document.getElementById('diceOverlay').classList.remove('active');
 }
+
