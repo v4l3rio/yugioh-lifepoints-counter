@@ -10,26 +10,29 @@ let calcInput = '';
 
 const lpSound = new Audio('lifedrop_sound.mp3');
 
-async function requestWakeLock() {
-    try {
-        wakeLock = await navigator.wakeLock.request('screen');
-        console.log("Wake Lock attivo")
+// Wake Lock: uses native API where supported (Android/desktop), falls back to
+// a silent looping video for iOS Safari which ignores the native API.
+const noSleep = new NoSleep();
+let wakeLockEnabled = false;
 
-        wakeLock.addEventListener('release', () => {
-            console.log("Wake Lock rilasciato")
-        })
-    } catch (err) {
-        console.warn("Wake Lock non disponibile: ", err)
-    }
+function enableWakeLock() {
+    if (wakeLockEnabled) return;
+    noSleep.enable();
+    wakeLockEnabled = true;
+    console.log("Wake Lock attivo");
 }
 
-document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState == 'visible') {
-        requestWakeLock();
-    }
-})
+// iOS requires a user gesture before media can play, so we hook into
+// the first touch or click to activate the wakelock.
+document.addEventListener('touchstart', enableWakeLock, { passive: true });
+document.addEventListener('click', enableWakeLock);
 
-requestWakeLock();
+// Re-enable after returning from background (native API releases on hide).
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && wakeLockEnabled) {
+        noSleep.enable();
+    }
+});
 
 function playSound() {
     lpSound.currentTime = 0;
