@@ -15,24 +15,37 @@ const lpSound = new Audio('lifedrop_sound.mp3');
 const noSleep = new NoSleep();
 let wakeLockEnabled = false;
 
-function enableWakeLock() {
-    if (wakeLockEnabled) return;
-    noSleep.enable();
-    wakeLockEnabled = true;
-    console.log("Wake Lock attivo");
+async function enableWakeLock() {
+    try {
+        await noSleep.enable();
+        wakeLockEnabled = true;
+    } catch (err) {
+        console.warn("Wake Lock failed:", err);
+    }
 }
 
 // iOS requires a user gesture before media can play, so we hook into
 // the first touch or click to activate the wakelock.
-document.addEventListener('touchstart', enableWakeLock, { passive: true });
-document.addEventListener('click', enableWakeLock);
+document.addEventListener('touchstart', enableWakeLock, { once: true, passive: true });
+document.addEventListener('click', enableWakeLock, { once: true });
 
 // Re-enable after returning from background (native API releases on hide).
-document.addEventListener('visibilitychange', () => {
+// Force disable+enable cycle to get a fresh lock.
+document.addEventListener('visibilitychange', async () => {
     if (document.visibilityState === 'visible' && wakeLockEnabled) {
-        noSleep.enable();
+        noSleep.disable();
+        await enableWakeLock();
     }
 });
+
+// Keepalive: iOS can pause the backing video after inactivity.
+// Re-enable periodically to ensure the lock stays active.
+setInterval(async () => {
+    if (wakeLockEnabled && document.visibilityState === 'visible') {
+        noSleep.disable();
+        await enableWakeLock();
+    }
+}, 20000);
 
 function playSound() {
     lpSound.currentTime = 0;
