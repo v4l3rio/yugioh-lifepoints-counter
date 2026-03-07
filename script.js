@@ -10,8 +10,40 @@ let calcInput = '';
 
 const lpSound = new Audio('lifedrop_sound.mp3');
 
-// ── Wake Lock: NoSleep.js ─────────────────────────────────────────────────────
+// ── Wake Lock: Screen Wake Lock API (iOS 16.4+, Chrome, Firefox, Edge) ───────
+class NoSleep {
+    constructor() {
+        this._wakeLock = null;
+        this._enabled  = false;
+    }
+    enable() {
+        this._enabled = true;
+        if (!('wakeLock' in navigator)) return Promise.resolve();
+        return navigator.wakeLock.request('screen')
+            .then(lock => {
+                this._wakeLock = lock;
+                lock.addEventListener('release', () => {
+                    if (this._enabled) this.enable();
+                });
+            })
+            .catch(() => {});
+    }
+    disable() {
+        this._enabled = false;
+        if (this._wakeLock) {
+            this._wakeLock.release().catch(() => {});
+            this._wakeLock = null;
+        }
+    }
+}
 const noSleep = new NoSleep();
+
+// Riacquista il wake lock quando l'app torna in foreground
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && noSleep._enabled) {
+        noSleep.enable();
+    }
+});
 // ─────────────────────────────────────────────────────────────────────────────
 
 function playSound() {
