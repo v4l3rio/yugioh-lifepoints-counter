@@ -1,2 +1,19 @@
+# ──────────────────────────────────────────────────────────────
+# PROJECT · lifepoints-counter
+# ──────────────────────────────────────────────────────────────
+# Contatore di life points per Yu-Gi-Oh! (e altri GCC).
+# PWA vanilla — funziona offline. Calcolatrice, dado, timer,
+# effetti sonori. Zero dipendenze, zero build step.
+#
+# Stack:  HTML5, CSS3, JavaScript vanilla, PWA (service worker)
+# Run:    apri index.html nel browser  oppure  usa Live Server
+# Deploy: qualsiasi static hosting (GitHub Pages, Netlify, ecc.)
+# Nota:   non serve npm install, non serve build
+# ──────────────────────────────────────────────────────────────
+
+# macOS
 .DS_Store
 
+# Editor
+.vscode/
+.idea/
