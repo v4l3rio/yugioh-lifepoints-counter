@@ -2,6 +2,7 @@ const SETTINGS_COOKIE = 'lp_newui_settings';
 const CONSENT_COOKIE = 'lp_newui_consent';
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 const COOKIE_PATH = window.location.pathname.replace(/[^/]*$/, '') || '/';
+const SETTINGS_VERSION = 2;
 
 const DEFAULT_SETTINGS = Object.freeze({
     player1Name: 'Giocatore 1',
@@ -14,10 +15,11 @@ const DEFAULT_SETTINGS = Object.freeze({
     soundEnabled: true,
     hapticsEnabled: true,
     wakeLockEnabled: true,
-    smartHundreds: false,
+    smartHundreds: true,
     calculatorOrientation: 'player',
     animationsEnabled: true,
     animationIntensity: 'normal',
+    lifeGradientEnabled: true,
     highContrast: false
 });
 
@@ -51,7 +53,7 @@ function cacheElements() {
         'lifeValue1', 'lifeValue2', 'lastChange1', 'lastChange2', 'lifeTrack1', 'lifeTrack2',
         'timer', 'matchRound', 'matchScore', 'timerControl',
         'undoAction', 'calculatorOverlay', 'calculatorPlayer', 'equationBefore',
-        'equationOperator', 'equationAmount', 'equationResult', 'toolOverlay', 'toolTitle',
+        'equationOperator', 'equationAmount', 'equationTyped', 'equationGhost', 'equationResult', 'toolOverlay', 'toolTitle',
         'toolResult', 'toolCaption', 'rerollButton', 'moreOverlay', 'historyOverlay',
         'historyList', 'winnerOverlay', 'winnerName1', 'winnerName2', 'settingsOverlay',
         'confirmOverlay', 'confirmTitle', 'confirmDescription', 'confirmCancel', 'confirmAccept',
@@ -115,6 +117,7 @@ function sanitizeSettings(raw) {
         animationIntensity: ['subtle', 'normal', 'strong'].includes(source.animationIntensity)
             ? source.animationIntensity
             : DEFAULT_SETTINGS.animationIntensity,
+        lifeGradientEnabled: booleanOrDefault(source.lifeGradientEnabled, DEFAULT_SETTINGS.lifeGradientEnabled),
         highContrast: booleanOrDefault(source.highContrast, DEFAULT_SETTINGS.highContrast)
     };
 }
@@ -136,7 +139,13 @@ function loadPreferences() {
     if (!stored) return;
 
     try {
-        state.settings = sanitizeSettings(JSON.parse(stored));
+        const saved = JSON.parse(stored);
+        if (Number(saved.settingsVersion || 1) < SETTINGS_VERSION) {
+            saved.smartHundreds = true;
+            saved.lifeGradientEnabled = true;
+        }
+        state.settings = sanitizeSettings(saved);
+        persistPreferences();
     } catch (_) {
         state.settings = { ...DEFAULT_SETTINGS };
     }
@@ -144,7 +153,7 @@ function loadPreferences() {
 
 function persistPreferences() {
     if (state.consent !== 'accepted') return;
-    setCookie(SETTINGS_COOKIE, JSON.stringify(state.settings));
+    setCookie(SETTINGS_COOKIE, JSON.stringify({ ...state.settings, settingsVersion: SETTINGS_VERSION }));
 }
 
 function acceptPreferenceCookies() {
@@ -248,6 +257,7 @@ function syncSettingsControls() {
         settingCalculatorOrientation: settings.calculatorOrientation,
         settingAnimations: settings.animationsEnabled,
         settingAnimationIntensity: settings.animationIntensity,
+        settingLifeGradient: settings.lifeGradientEnabled,
         settingColor1: settings.player1Color,
         settingColor2: settings.player2Color,
         settingHighContrast: settings.highContrast
@@ -275,6 +285,7 @@ function registerSettingsListeners() {
         ['settingCalculatorOrientation', 'calculatorOrientation', 'value'],
         ['settingAnimations', 'animationsEnabled', 'checkbox'],
         ['settingAnimationIntensity', 'animationIntensity', 'value'],
+        ['settingLifeGradient', 'lifeGradientEnabled', 'checkbox'],
         ['settingColor1', 'player1Color', 'value'],
         ['settingColor2', 'player2Color', 'value'],
         ['settingHighContrast', 'highContrast', 'checkbox']
@@ -313,7 +324,10 @@ function renderPlayer(player) {
     const panel = elements['playerPanel' + player];
     const value = elements['lifeValue' + player];
     const track = elements['lifeTrack' + player];
-    const lifeColor = dangerRatio > 0 ? mixHexColors(playerColor(player), '#ff6262', dangerRatio) : playerColor(player);
+    const lifeColor = state.settings.lifeGradientEnabled
+        ? lifeRatioColor(ratio)
+        : (dangerRatio > 0 ? mixHexColors(playerColor(player), '#ff6262', dangerRatio) : playerColor(player));
+    const ambientSecondary = state.settings.lifeGradientEnabled ? lifeColor : playerColor(player);
 
     value.textContent = String(life);
     track.style.transform = 'scaleX(' + ratio + ')';
@@ -322,6 +336,7 @@ function renderPlayer(player) {
     panel.style.setProperty('--life-color', lifeColor);
     panel.style.setProperty('--player-rgb', hexToRgb(playerColor(player)).join(' '));
     panel.style.setProperty('--life-rgb', hexToRgb(lifeColor).join(' '));
+    panel.style.setProperty('--ambient-secondary-rgb', hexToRgb(ambientSecondary).join(' '));
     panel.style.setProperty('--ambient-speed', (11 - dangerRatio * 3).toFixed(1) + 's');
     panel.classList.toggle('is-critical', life > 0 && ratio <= 0.25);
     panel.classList.toggle('is-defeated', life === 0);
@@ -344,6 +359,14 @@ function mixHexColors(first, second, amount) {
 
 function hexToRgb(color) {
     return color.match(/\w\w/g).map(value => parseInt(value, 16));
+}
+
+function lifeRatioColor(ratio) {
+    const normalized = Math.max(0, Math.min(ratio, 1));
+    if (normalized >= 0.5) {
+        return mixHexColors('#f2b134', '#27c56f', (normalized - 0.5) * 2);
+    }
+    return mixHexColors('#ff4655', '#f2b134', normalized * 2);
 }
 
 function changeLife(player, nextLife, source = 'manual') {
@@ -605,8 +628,8 @@ function closeCalculator() {
 }
 
 function calculatorPressDigit(digit) {
-    if (state.calculatorInput.length >= 6) return;
-    if (!state.calculatorInput && digit === '0') return;
+    if (state.calculatorInput.length + digit.length > 6) return;
+    if (!state.calculatorInput && /^0+$/.test(digit)) return;
     state.calculatorInput += digit;
     updateCalculatorPreview('damage');
     vibrate(5);
@@ -615,7 +638,7 @@ function calculatorPressDigit(digit) {
 function calculatorValue() {
     if (!state.calculatorInput) return 0;
     const raw = Number.parseInt(state.calculatorInput, 10);
-    if (state.settings.smartHundreds && state.calculatorInput.length <= 2) return raw * 100;
+    if (state.settings.smartHundreds && state.calculatorInput.length === 1) return raw * 100;
     return raw;
 }
 
@@ -638,7 +661,12 @@ function updateCalculatorPreview(operation) {
 
     elements.equationBefore.textContent = String(before);
     elements.equationOperator.textContent = operator;
-    elements.equationAmount.textContent = operation === 'halve' ? '' : String(amount);
+    const showSuggestion = operation !== 'halve'
+        && state.settings.smartHundreds
+        && state.calculatorInput.length === 1;
+    elements.equationTyped.textContent = operation === 'halve' ? '' : (state.calculatorInput || '0');
+    elements.equationGhost.textContent = showSuggestion ? '00' : '';
+    elements.equationAmount.setAttribute('aria-label', operation === 'halve' ? '' : String(amount));
     elements.equationAmount.hidden = operation === 'halve';
     elements.equationResult.textContent = String(result);
 }

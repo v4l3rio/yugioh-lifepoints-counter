@@ -1,9 +1,9 @@
-const CACHE_NAME = 'lp-counter-newui-v2';
+const CACHE_NAME = 'lp-counter-newui-v4';
 const APP_SHELL = [
     './',
     './index.html',
-    './styles.css?v=2',
-    './app.js?v=2',
+    './styles.css?v=4',
+    './app.js?v=4',
     './manifest.webmanifest',
     './icon.svg',
     '../apple_icon.png',
