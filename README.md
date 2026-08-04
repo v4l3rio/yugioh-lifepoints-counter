@@ -4,6 +4,10 @@ A simple, mobile-friendly Life Points tracker for two-player card games like Yu-
 
 No installation required — just open `index.html` in a browser. 🌐
 
+## Experimental New UI
+
+A redesigned, feature-rich interface is available at [`/newui`](./newui/). The original interface remains unchanged at the project root while the new experience is refined.
+
 ## Features
 
 - **Life Points tracker** — both players start at 8000 LP
