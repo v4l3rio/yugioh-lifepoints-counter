@@ -43,6 +43,10 @@ const state = {
 
 const elements = {};
 const changeTimers = { 1: null, 2: null };
+const lifeAnimations = {
+    1: { frame: null, displayed: null, cleanupTimer: null },
+    2: { frame: null, displayed: null, cleanupTimer: null }
+};
 const lpSound = new Audio('../lifedrop_sound.mp3');
 let toastTimer = null;
 let wakeLock = null;
@@ -312,12 +316,14 @@ function registerSettingsListeners() {
 }
 
 function renderPlayers() {
-    renderPlayer(1);
-    renderPlayer(2);
+    [1, 2].forEach(player => {
+        cancelLifeAnimation(player);
+        renderPlayer(player, state.life[player]);
+    });
 }
 
-function renderPlayer(player) {
-    const life = state.life[player];
+function renderPlayer(player, visualLife = state.life[player]) {
+    const life = Math.max(0, Math.round(visualLife));
     const start = state.settings.startLp;
     const ratio = Math.max(0, Math.min(life / start, 1));
     const dangerRatio = Math.max(0, Math.min((0.28 - ratio) / 0.28, 1));
@@ -340,6 +346,61 @@ function renderPlayer(player) {
     panel.style.setProperty('--ambient-speed', (11 - dangerRatio * 3).toFixed(1) + 's');
     panel.classList.toggle('is-critical', life > 0 && ratio <= 0.25);
     panel.classList.toggle('is-defeated', life === 0);
+    lifeAnimations[player].displayed = life;
+}
+
+function cancelLifeAnimation(player) {
+    const animation = lifeAnimations[player];
+    if (animation.frame !== null) cancelAnimationFrame(animation.frame);
+    clearTimeout(animation.cleanupTimer);
+    animation.frame = null;
+    animation.cleanupTimer = null;
+
+    const value = elements['lifeValue' + player];
+    if (value) value.classList.remove('is-counting-up', 'is-counting-down');
+}
+
+function animateLifeValue(player, from, to) {
+    const animation = lifeAnimations[player];
+    const value = elements['lifeValue' + player];
+    const visualFrom = animation.displayed === null ? from : animation.displayed;
+    const reduceMotion = typeof window.matchMedia === 'function'
+        && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    cancelLifeAnimation(player);
+
+    if (visualFrom === to || reduceMotion) {
+        renderPlayer(player, to);
+        return;
+    }
+
+    const duration = 2000;
+    const difference = to - visualFrom;
+    const directionClass = difference < 0 ? 'is-counting-down' : 'is-counting-up';
+    let startedAt = null;
+
+    value.classList.add(directionClass);
+
+    function tick(timestamp) {
+        if (startedAt === null) startedAt = timestamp;
+        const progress = Math.min((timestamp - startedAt) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        renderPlayer(player, visualFrom + difference * eased);
+
+        if (progress < 1) {
+            animation.frame = requestAnimationFrame(tick);
+            return;
+        }
+
+        animation.frame = null;
+        renderPlayer(player, to);
+        animation.cleanupTimer = setTimeout(() => {
+            value.classList.remove(directionClass);
+            animation.cleanupTimer = null;
+        }, 260);
+    }
+
+    animation.frame = requestAnimationFrame(tick);
 }
 
 function playerColor(player) {
@@ -386,7 +447,7 @@ function changeLife(player, nextLife, source = 'manual') {
         timestamp: new Date()
     });
 
-    renderPlayer(player);
+    animateLifeValue(player, before, after);
     showLifeChange(player, delta);
     updateUndoState();
     playLifeSound();
@@ -423,8 +484,9 @@ function updateUndoState() {
 function undoLastChange() {
     const entry = state.history.shift();
     if (!entry) return;
+    const before = state.life[entry.player];
     state.life[entry.player] = entry.before;
-    renderPlayer(entry.player);
+    animateLifeValue(entry.player, before, entry.before);
     showLifeChange(entry.player, -entry.delta);
     updateUndoState();
     vibrate(12);
