@@ -53,7 +53,7 @@ function cacheElements() {
         'lifeValue1', 'lifeValue2', 'lastChange1', 'lastChange2', 'lifeTrack1', 'lifeTrack2',
         'timer', 'matchRound', 'matchScore', 'timerControl',
         'undoAction', 'calculatorOverlay', 'calculatorPlayer', 'equationBefore',
-        'equationOperator', 'equationAmount', 'equationResult', 'toolOverlay', 'toolTitle',
+        'equationOperator', 'equationAmount', 'equationTyped', 'equationGhost', 'equationResult', 'toolOverlay', 'toolTitle',
         'toolResult', 'toolCaption', 'rerollButton', 'moreOverlay', 'historyOverlay',
         'historyList', 'winnerOverlay', 'winnerName1', 'winnerName2', 'settingsOverlay',
         'confirmOverlay', 'confirmTitle', 'confirmDescription', 'confirmCancel', 'confirmAccept',
@@ -628,8 +628,8 @@ function closeCalculator() {
 }
 
 function calculatorPressDigit(digit) {
-    if (state.calculatorInput.length >= 6) return;
-    if (!state.calculatorInput && digit === '0') return;
+    if (state.calculatorInput.length + digit.length > 6) return;
+    if (!state.calculatorInput && /^0+$/.test(digit)) return;
     state.calculatorInput += digit;
     updateCalculatorPreview('damage');
     vibrate(5);
@@ -638,7 +638,7 @@ function calculatorPressDigit(digit) {
 function calculatorValue() {
     if (!state.calculatorInput) return 0;
     const raw = Number.parseInt(state.calculatorInput, 10);
-    if (state.settings.smartHundreds && state.calculatorInput.length <= 2) return raw * 100;
+    if (state.settings.smartHundreds && state.calculatorInput.length === 1) return raw * 100;
     return raw;
 }
 
@@ -661,7 +661,12 @@ function updateCalculatorPreview(operation) {
 
     elements.equationBefore.textContent = String(before);
     elements.equationOperator.textContent = operator;
-    elements.equationAmount.textContent = operation === 'halve' ? '' : String(amount);
+    const showSuggestion = operation !== 'halve'
+        && state.settings.smartHundreds
+        && state.calculatorInput.length === 1;
+    elements.equationTyped.textContent = operation === 'halve' ? '' : (state.calculatorInput || '0');
+    elements.equationGhost.textContent = showSuggestion ? '00' : '';
+    elements.equationAmount.setAttribute('aria-label', operation === 'halve' ? '' : String(amount));
     elements.equationAmount.hidden = operation === 'halve';
     elements.equationResult.textContent = String(result);
 }

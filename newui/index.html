@@ -11,7 +11,7 @@
     <link rel="icon" href="../favicon.ico">
     <link rel="apple-touch-icon" href="../apple_icon.png">
     <link rel="manifest" href="manifest.webmanifest">
-    <link rel="stylesheet" href="styles.css?v=3">
+    <link rel="stylesheet" href="styles.css?v=4">
 </head>
 <body>
     <main class="app-shell" id="appShell">
@@ -96,7 +96,7 @@
             <div class="equation" aria-live="polite">
                 <span id="equationBefore">8000</span>
                 <span id="equationOperator">−</span>
-                <strong id="equationAmount">0</strong>
+                <strong id="equationAmount"><span id="equationTyped">0</span><span class="equation-ghost" id="equationGhost"></span></strong>
                 <span>=</span>
                 <strong id="equationResult">8000</strong>
             </div>
@@ -120,7 +120,9 @@
                 <button class="number-pad__utility" type="button" data-calc-action="backspace" aria-label="Cancella ultima cifra">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 7-5 5 5 5h9V7Z"/><path d="m13 10 4 4M17 10l-4 4"/></svg>
                 </button>
-                <button type="button" data-digit="0">0</button>
+                <button class="number-pad__compact" type="button" data-digit="0">0</button>
+                <button class="number-pad__zero-shortcut" type="button" data-digit="00">00</button>
+                <button class="number-pad__zero-shortcut number-pad__zero-shortcut--wide" type="button" data-digit="000">000</button>
                 <button class="number-pad__utility" type="button" data-calc-action="clear">C</button>
             </div>
 
@@ -245,7 +247,7 @@
                     <label class="setting-toggle"><span><strong>Suoni</strong><small>Effetti LP e avvisi del timer</small></span><input id="settingSound" type="checkbox"><i aria-hidden="true"></i></label>
                     <label class="setting-toggle"><span><strong>Feedback aptico</strong><small>Vibrazione leggera sulle azioni</small></span><input id="settingHaptics" type="checkbox"><i aria-hidden="true"></i></label>
                     <label class="setting-toggle"><span><strong>Schermo sempre acceso</strong><small>Attivo durante il timer</small></span><input id="settingWakeLock" type="checkbox"><i aria-hidden="true"></i></label>
-                    <label class="setting-toggle"><span><strong>Inserimento rapido</strong><small>“5” viene interpretato come 500</small></span><input id="settingSmartHundreds" type="checkbox"><i aria-hidden="true"></i></label>
+                    <label class="setting-toggle"><span><strong>Inserimento rapido</strong><small>Una cifra suggerisce due zeri sbiaditi</small></span><input id="settingSmartHundreds" type="checkbox"><i aria-hidden="true"></i></label>
                     <label class="field-row"><span><strong>Orientamento calcolatore</strong><small>In modalità verticale</small></span><select id="settingCalculatorOrientation"><option value="player">Verso il giocatore</option><option value="fixed">Sempre dal mio lato</option></select></label>
                 </section>
 
@@ -299,6 +301,6 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <div class="sr-only" id="liveRegion" aria-live="assertive"></div>
 
-    <script src="app.js?v=3"></script>
+    <script src="app.js?v=4"></script>
 </body>
 </html>

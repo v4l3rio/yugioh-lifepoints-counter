@@ -712,6 +712,11 @@ button:disabled {
     color: var(--active-player-color, var(--player-2));
 }
 
+.equation .equation-ghost {
+    color: var(--text-muted);
+    opacity: 0.28;
+}
+
 .quick-values {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -732,7 +737,7 @@ button:disabled {
 
 .number-pad {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     gap: 7px;
 }
 
@@ -748,6 +753,7 @@ button:disabled {
     font-weight: 680;
     cursor: pointer;
     transition: transform 80ms ease, background 100ms ease;
+    grid-column: span 2;
 }
 
 .number-pad button:active {
@@ -756,9 +762,24 @@ button:disabled {
 }
 
 .number-pad .number-pad__utility {
+    grid-column: span 1;
     background: #12161c;
     color: var(--text-muted);
     font-size: 1rem;
+}
+
+.number-pad .number-pad__zero-shortcut {
+    grid-column: span 1;
+    color: var(--text-soft);
+    font-size: 1.1rem;
+}
+
+.number-pad .number-pad__zero-shortcut--wide {
+    grid-column: span 2;
+}
+
+.number-pad .number-pad__compact {
+    grid-column: span 1;
 }
 
 .number-pad__utility svg {
