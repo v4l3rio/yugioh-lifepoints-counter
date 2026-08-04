@@ -13,6 +13,8 @@ No installation required — just open `index.html` in a browser. 🌐
 - **3D dice roller** — tap the dice button to roll an animated six-sided die
 - **Reset options** — reset only LP, or reset the full match (LP + timer)
 - **Sound effect** — plays on LP changes
+- **Custom settings** — enable or disable sounds and animated LP backgrounds, and choose who the calculator faces in portrait mode
+- **Cookie preferences** — optionally remember settings on the current device; rejecting cookies keeps preferences only for the current session
 
 ## Usage
 
@@ -21,6 +23,7 @@ No installation required — just open `index.html` in a browser. 🌐
 3. Type a value, then press `−` to deal damage or `+` to heal. Use `÷2` to halve LP instantly.
 4. Use the bottom bar for dice, undo, and reset actions.
 5. Tap the timer at the top to start/pause the match clock.
+6. Open **Impostazioni** from the bottom bar to customize sounds, LP animations, and calculator orientation.
 
 ## Keyboard shortcuts
 
