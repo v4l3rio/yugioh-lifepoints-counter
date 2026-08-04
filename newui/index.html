@@ -11,7 +11,7 @@
     <link rel="icon" href="../favicon.ico">
     <link rel="apple-touch-icon" href="../apple_icon.png">
     <link rel="manifest" href="manifest.webmanifest">
-    <link rel="stylesheet" href="styles.css?v=2">
+    <link rel="stylesheet" href="styles.css?v=3">
 </head>
 <body>
     <main class="app-shell" id="appShell">
@@ -251,10 +251,11 @@
 
                 <section class="settings-section">
                     <h3>Aspetto</h3>
-                    <label class="setting-toggle"><span><strong>Animazione LP</strong><small>Alone proporzionale ai Life Points</small></span><input id="settingAnimations" type="checkbox"><i aria-hidden="true"></i></label>
-                    <label class="field-row"><span><strong>Intensità animazione</strong><small>Riduci l’impatto visivo</small></span><select id="settingAnimationIntensity"><option value="subtle">Discreta</option><option value="normal">Normale</option><option value="strong">Intensa</option></select></label>
-                    <label class="field-row"><span><strong>Colore giocatore 1</strong><small>Identità lato superiore</small></span><input id="settingColor1" class="color-input" type="color"></label>
-                    <label class="field-row"><span><strong>Colore giocatore 2</strong><small>Identità lato inferiore</small></span><input id="settingColor2" class="color-input" type="color"></label>
+                    <label class="setting-toggle"><span><strong>Gradiente dinamico LP</strong><small>Verde ad alti LP, rosso vicino allo zero</small></span><input id="settingLifeGradient" type="checkbox"><i aria-hidden="true"></i></label>
+                    <label class="setting-toggle"><span><strong>Movimento gradiente</strong><small>Anima lentamente lo sfondo dei giocatori</small></span><input id="settingAnimations" type="checkbox"><i aria-hidden="true"></i></label>
+                    <label class="field-row"><span><strong>Intensità animazione</strong><small>Regola la presenza dello sfondo</small></span><select id="settingAnimationIntensity"><option value="subtle">Discreta</option><option value="normal">Normale</option><option value="strong">Intensa</option></select></label>
+                    <label class="field-row"><span><strong>Colore giocatore 1</strong><small>Indicatore e sfondo alternativo</small></span><input id="settingColor1" class="color-input" type="color"></label>
+                    <label class="field-row"><span><strong>Colore giocatore 2</strong><small>Indicatore e sfondo alternativo</small></span><input id="settingColor2" class="color-input" type="color"></label>
                     <label class="setting-toggle"><span><strong>Contrasto elevato</strong><small>Testi e controlli più evidenti</small></span><input id="settingHighContrast" type="checkbox"><i aria-hidden="true"></i></label>
                 </section>
 
@@ -298,6 +299,6 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <div class="sr-only" id="liveRegion" aria-live="assertive"></div>
 
-    <script src="app.js?v=2"></script>
+    <script src="app.js?v=3"></script>
 </body>
 </html>
