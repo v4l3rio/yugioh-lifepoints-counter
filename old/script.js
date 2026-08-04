@@ -19,7 +19,7 @@ let calcInput = '';
 let cookieConsent = 'pending';
 let settings = { ...DEFAULT_SETTINGS };
 
-const lpSound = new Audio('lifedrop_sound.mp3');
+const lpSound = new Audio('../lifedrop_sound.mp3');
 
 // ── Wake Lock: Screen Wake Lock API (iOS 16.4+, Chrome, Firefox, Edge) ───────
 class NoSleep {

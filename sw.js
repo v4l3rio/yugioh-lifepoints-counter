@@ -1,15 +1,19 @@
-const CACHE_NAME = 'lp-counter-newui-v7';
+const CACHE_NAME = 'lp-counter-v8';
 const APP_SHELL = [
     './',
     './index.html',
-    './styles.css?v=7',
-    './app.js?v=7',
+    './styles.css?v=8',
+    './app.js?v=8',
     './manifest.webmanifest',
     './icon.svg',
-    '../apple_icon.png',
-    '../favicon.ico',
-    '../lifedrop_sound.mp3'
+    './apple_icon.png',
+    './favicon.ico',
+    './lifedrop_sound.mp3'
 ];
+
+const APP_ROOT = new URL('./', self.location.href).pathname;
+const APP_ENTRY_POINTS = new Set([APP_ROOT, APP_ROOT + 'index.html']);
+const EXCLUDED_PATHS = [APP_ROOT + 'old/', APP_ROOT + 'newui/'];
 
 self.addEventListener('install', event => {
     event.waitUntil(
@@ -29,9 +33,12 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
     const request = event.request;
-    if (request.method !== 'GET' || new URL(request.url).origin !== self.location.origin) return;
+    const url = new URL(request.url);
+    if (request.method !== 'GET' || url.origin !== self.location.origin) return;
+    if (EXCLUDED_PATHS.some(path => url.pathname.startsWith(path))) return;
 
     if (request.mode === 'navigate') {
+        if (!APP_ENTRY_POINTS.has(url.pathname)) return;
         event.respondWith(
             fetch(request)
                 .then(response => {

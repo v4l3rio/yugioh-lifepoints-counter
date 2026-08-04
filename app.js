@@ -48,7 +48,7 @@ const lifeAnimations = {
     1: { frame: null, displayed: null, cleanupTimer: null },
     2: { frame: null, displayed: null, cleanupTimer: null }
 };
-const lpSound = new Audio('../lifedrop_sound.mp3');
+const lpSound = new Audio('./lifedrop_sound.mp3');
 let toastTimer = null;
 let wakeLock = null;
 
