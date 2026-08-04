@@ -272,6 +272,20 @@ button:disabled {
     animation: life-pulse 330ms var(--ease);
 }
 
+.life-value.is-counting-down {
+    color: #ff8585;
+    text-shadow:
+        0 12px 40px rgba(0,0,0,0.42),
+        0 0 44px rgba(255, 98, 98, 0.24);
+}
+
+.life-value.is-counting-up {
+    color: #72dfa2;
+    text-shadow:
+        0 12px 40px rgba(0,0,0,0.42),
+        0 0 44px rgba(77, 206, 133, 0.22);
+}
+
 @keyframes life-pulse {
     0% { transform: scale(1); }
     42% { transform: scale(1.045); color: var(--life-color); }
