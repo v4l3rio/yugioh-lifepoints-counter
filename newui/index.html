@@ -11,7 +11,7 @@
     <link rel="icon" href="../favicon.ico">
     <link rel="apple-touch-icon" href="../apple_icon.png">
     <link rel="manifest" href="manifest.webmanifest">
-    <link rel="stylesheet" href="styles.css?v=1">
+    <link rel="stylesheet" href="styles.css?v=2">
 </head>
 <body>
     <main class="app-shell" id="appShell">
@@ -30,20 +30,20 @@
         </section>
 
         <section class="duel-hub" aria-label="Timer e stato partita">
-            <div class="duel-face duel-face--opponent">
-                <span class="duel-clock" id="timerTop">40:00</span>
-                <span class="duel-state" id="matchStateTop">Duello 1 · 0–0</span>
+            <div class="match-summary" aria-label="Stato partita">
+                <span class="match-round" id="matchRound">Duello 1</span>
+                <strong class="match-score" id="matchScore">0–0</strong>
+            </div>
+
+            <div class="timer-display" aria-live="off">
+                <span class="timer-pulse" aria-hidden="true"></span>
+                <span class="duel-clock" id="timer">40:00</span>
             </div>
 
             <button class="timer-control" id="timerControl" type="button" aria-label="Avvia timer">
                 <svg class="icon icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7Z"/></svg>
                 <svg class="icon icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg>
             </button>
-
-            <div class="duel-face">
-                <span class="duel-clock" id="timerBottom">40:00</span>
-                <span class="duel-state" id="matchStateBottom">Duello 1 · 0–0</span>
-            </div>
         </section>
 
         <section class="player-panel player-panel--owner" id="playerPanel2" data-player="2" tabindex="0" role="button" aria-label="Modifica i Life Points del Giocatore 2">
@@ -298,6 +298,6 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <div class="sr-only" id="liveRegion" aria-live="assertive"></div>
 
-    <script src="app.js?v=1"></script>
+    <script src="app.js?v=2"></script>
 </body>
 </html>

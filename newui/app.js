@@ -17,7 +17,7 @@ const DEFAULT_SETTINGS = Object.freeze({
     smartHundreds: false,
     calculatorOrientation: 'player',
     animationsEnabled: true,
-    animationIntensity: 'subtle',
+    animationIntensity: 'normal',
     highContrast: false
 });
 
@@ -49,7 +49,7 @@ function cacheElements() {
     const ids = [
         'appShell', 'playerPanel1', 'playerPanel2', 'playerName1', 'playerName2',
         'lifeValue1', 'lifeValue2', 'lastChange1', 'lastChange2', 'lifeTrack1', 'lifeTrack2',
-        'timerTop', 'timerBottom', 'matchStateTop', 'matchStateBottom', 'timerControl',
+        'timer', 'matchRound', 'matchScore', 'timerControl',
         'undoAction', 'calculatorOverlay', 'calculatorPlayer', 'equationBefore',
         'equationOperator', 'equationAmount', 'equationResult', 'toolOverlay', 'toolTitle',
         'toolResult', 'toolCaption', 'rerollButton', 'moreOverlay', 'historyOverlay',
@@ -179,11 +179,13 @@ function applyPreferences(options = {}) {
 
     root.style.setProperty('--player-1', settings.player1Color);
     root.style.setProperty('--player-2', settings.player2Color);
+    root.style.setProperty('--player-1-rgb', hexToRgb(settings.player1Color).join(' '));
+    root.style.setProperty('--player-2-rgb', hexToRgb(settings.player2Color).join(' '));
 
     const intensity = {
-        subtle: ['8%', '5%'],
-        normal: ['13%', '9%'],
-        strong: ['20%', '14%']
+        subtle: ['0.22', '0.14'],
+        normal: ['0.34', '0.22'],
+        strong: ['0.48', '0.32']
     }[settings.animationIntensity];
     root.style.setProperty('--animation-percent', intensity[0]);
     root.style.setProperty('--animation-secondary-percent', intensity[1]);
@@ -311,14 +313,18 @@ function renderPlayer(player) {
     const panel = elements['playerPanel' + player];
     const value = elements['lifeValue' + player];
     const track = elements['lifeTrack' + player];
+    const lifeColor = dangerRatio > 0 ? mixHexColors(playerColor(player), '#ff6262', dangerRatio) : playerColor(player);
 
     value.textContent = String(life);
     track.style.transform = 'scaleX(' + ratio + ')';
     panel.style.setProperty('--life-ratio', ratio.toFixed(3));
-    panel.style.setProperty(
-        '--life-color',
-        dangerRatio > 0 ? mixHexColors(playerColor(player), '#ff6262', dangerRatio) : playerColor(player)
-    );
+    panel.style.setProperty('--danger-ratio', dangerRatio.toFixed(3));
+    panel.style.setProperty('--life-color', lifeColor);
+    panel.style.setProperty('--player-rgb', hexToRgb(playerColor(player)).join(' '));
+    panel.style.setProperty('--life-rgb', hexToRgb(lifeColor).join(' '));
+    panel.style.setProperty('--ambient-speed', (11 - dangerRatio * 3).toFixed(1) + 's');
+    panel.classList.toggle('is-critical', life > 0 && ratio <= 0.25);
+    panel.classList.toggle('is-defeated', life === 0);
 }
 
 function playerColor(player) {
@@ -330,10 +336,14 @@ function playerName(player) {
 }
 
 function mixHexColors(first, second, amount) {
-    const a = first.match(/\w\w/g).map(value => parseInt(value, 16));
-    const b = second.match(/\w\w/g).map(value => parseInt(value, 16));
+    const a = hexToRgb(first);
+    const b = hexToRgb(second);
     const channels = a.map((value, index) => Math.round(value + (b[index] - value) * amount));
     return '#' + channels.map(value => value.toString(16).padStart(2, '0')).join('');
+}
+
+function hexToRgb(color) {
+    return color.match(/\w\w/g).map(value => parseInt(value, 16));
 }
 
 function changeLife(player, nextLife, source = 'manual') {
@@ -372,6 +382,7 @@ function showLifeChange(player, delta) {
     value.classList.remove('is-changing');
     void value.offsetWidth;
     value.classList.add('is-changing');
+    value.addEventListener('animationend', () => value.classList.remove('is-changing'), { once: true });
 
     changeTimers[player] = setTimeout(() => {
         badge.classList.remove('is-visible');
@@ -443,9 +454,8 @@ function awardGame(player) {
 }
 
 function renderMatchState() {
-    const text = 'Duello ' + state.gameNumber + ' · ' + state.wins[1] + '–' + state.wins[2];
-    elements.matchStateTop.textContent = text;
-    elements.matchStateBottom.textContent = text;
+    elements.matchRound.textContent = 'Duello ' + state.gameNumber;
+    elements.matchScore.textContent = state.wins[1] + '–' + state.wins[2];
 }
 
 function formatTime(seconds) {
@@ -456,8 +466,7 @@ function formatTime(seconds) {
 
 function renderTimer() {
     const value = formatTime(state.timerSeconds);
-    elements.timerTop.textContent = value;
-    elements.timerBottom.textContent = value;
+    elements.timer.textContent = value;
     elements.timerControl.classList.toggle('is-running', state.timerRunning);
     elements.timerControl.setAttribute('aria-label', state.timerRunning ? 'Metti in pausa il timer' : 'Avvia il timer');
 
