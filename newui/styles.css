@@ -1597,6 +1597,9 @@ button:disabled {
         left: 0;
         width: 100%;
         height: 100dvh;
+        grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.45fr) minmax(0, 0.55fr);
+        grid-template-rows: auto minmax(0, 1fr);
+        column-gap: 12px;
         padding: max(9px, env(safe-area-inset-top, 0)) max(12px, env(safe-area-inset-right, 0)) max(9px, env(safe-area-inset-bottom, 0)) max(12px, env(safe-area-inset-left, 0));
         border: 0;
         border-radius: 0;
@@ -1605,33 +1608,82 @@ button:disabled {
     .calculator-overlay.is-open .calculator-sheet {
         transform: translateY(0);
     }
-    .calculator-header { padding-bottom: 8px; }
-    .calculator-header h2 { font-size: 1.12rem; }
+    .calculator-header {
+        grid-column: 1;
+        grid-row: 1;
+        min-width: 0;
+        padding-bottom: 8px;
+    }
+    .calculator-header h2 {
+        overflow: hidden;
+        font-size: clamp(0.88rem, 2.2vw, 1.12rem);
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
     .calculator-header .sheet-kicker { margin-bottom: 1px; font-size: 0.58rem; }
-    .calculator-header .icon-button { width: 40px; height: 40px; border-radius: 12px; }
+    .calculator-header .icon-button {
+        position: absolute;
+        z-index: 2;
+        top: max(9px, env(safe-area-inset-top, 0));
+        right: max(12px, env(safe-area-inset-right, 0));
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+    }
     .calculator-layout {
-        grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
-        grid-template-rows: minmax(0, 1fr);
-        gap: 12px;
+        display: contents;
     }
     .calculator-readout {
         display: grid;
         min-height: 0;
-        grid-template-rows: minmax(0, 1fr) auto;
+        grid-column: 1;
+        grid-row: 2;
+        grid-template-rows: auto minmax(0, 1fr);
         gap: 7px;
     }
-    .equation { min-height: 0; margin: 0; padding: 7px 5px; font-size: clamp(0.76rem, 2.2vw, 1rem); }
-    .equation strong { font-size: clamp(1.05rem, 3.1vw, 1.45rem); }
-    .quick-values { gap: 5px; margin: 0; }
-    .quick-values button { min-height: 34px; border-radius: 10px; font-size: 0.72rem; }
-    .number-pad { grid-template-rows: repeat(4, minmax(0, 1fr)); gap: 5px; align-content: stretch; }
+    .equation {
+        min-height: 54px;
+        margin: 0;
+        padding: 7px 5px;
+        gap: clamp(3px, 0.75vw, 7px);
+        border: 1px solid var(--border);
+        font-size: clamp(0.68rem, 1.55vw, 0.86rem);
+    }
+    .equation strong { font-size: clamp(0.98rem, 2.3vw, 1.3rem); }
+    .quick-values {
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+        margin: 0;
+    }
+    .quick-values button { min-height: 0; border-radius: 11px; font-size: 0.78rem; }
+    .calculator-input { display: contents; }
+    .number-pad {
+        grid-column: 2;
+        grid-row: 1 / 3;
+        grid-template-rows: repeat(4, minmax(0, 1fr));
+        gap: 6px;
+        align-content: stretch;
+    }
     .number-pad button { min-height: 0; border-radius: 11px; font-size: 1.18rem; }
     .number-pad .number-pad__zero-shortcut { font-size: 0.94rem; }
     .number-pad__utility svg { width: 19px; height: 19px; }
-    .calculator-actions { gap: 6px; margin-top: 7px; }
-    .calc-action { min-height: 43px; border-radius: 12px; gap: 5px; }
-    .calc-symbol { font-size: 1.18rem; }
-    .calc-action span:last-child { font-size: 0.68rem; }
+    .calculator-actions {
+        grid-column: 3;
+        grid-row: 2;
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+        margin: 0;
+    }
+    .calc-action {
+        min-height: 0;
+        flex-direction: column;
+        border-radius: 12px;
+        gap: 3px;
+    }
+    .calc-symbol { font-size: 1.45rem; line-height: 1; }
+    .calc-action span:last-child { font-size: 0.72rem; }
 
     .bottom-sheet {
         right: 50%;
