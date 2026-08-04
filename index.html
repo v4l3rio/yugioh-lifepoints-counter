@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="apple-touch-icon" href="apple_icon.png">
-    <link rel="stylesheet" href="styles.css?v=2">
+    <link rel="stylesheet" href="styles.css?v=3">
 </head>
 <body>
 
@@ -51,6 +51,10 @@
     <button class="bottom-btn bottom-btn-small" onclick="confirmReset(true)">
         <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="m9 10 6 4"/><path d="m15 10-6 4"/></svg>
         Reset Match
+    </button>
+    <button class="bottom-btn bottom-btn-small" onclick="openSettings()" aria-label="Apri impostazioni">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V21h-4v-.08A1.7 1.7 0 0 0 8.97 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.52-1.03H3v-4h.08A1.7 1.7 0 0 0 4.6 8.94a1.7 1.7 0 0 0-.34-1.88L4.2 7l2.83-2.83.06.06a1.7 1.7 0 0 0 1.88.34A1.7 1.7 0 0 0 10 3.05V3h4v.05a1.7 1.7 0 0 0 1.03 1.52 1.7 1.7 0 0 0 1.88-.34l.06-.06L19.8 7l-.06.06a1.7 1.7 0 0 0-.34 1.88A1.7 1.7 0 0 0 20.92 10H21v4h-.08A1.7 1.7 0 0 0 19.4 15Z"/></svg>
+        Impostazioni
     </button>
 </div>
 
@@ -146,6 +150,85 @@
     </div>
 </div>
 
+<!-- Settings overlay -->
+<div class="settings-overlay" id="settingsOverlay" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="settings-panel">
+        <div class="settings-header">
+            <div>
+                <div class="settings-kicker">LP Counter</div>
+                <h2 id="settingsTitle">Impostazioni</h2>
+            </div>
+            <button class="settings-close" onclick="closeSettings()" aria-label="Chiudi impostazioni">&#10005;</button>
+        </div>
+
+        <div class="settings-list">
+            <label class="setting-row" for="soundSetting">
+                <span>
+                    <strong>Suoni</strong>
+                    <small>Riproduci l'effetto quando cambiano i Life Points.</small>
+                </span>
+                <span class="switch">
+                    <input type="checkbox" id="soundSetting" onchange="updateBooleanSetting('soundEnabled', this.checked)">
+                    <span class="switch-track" aria-hidden="true"></span>
+                </span>
+            </label>
+
+            <label class="setting-row" for="animationSetting">
+                <span>
+                    <strong>Animazione Life Points</strong>
+                    <small>Mostra uno sfondo animato che cambia colore con i Life Points.</small>
+                </span>
+                <span class="switch">
+                    <input type="checkbox" id="animationSetting" onchange="updateBooleanSetting('lifeAnimationEnabled', this.checked)">
+                    <span class="switch-track" aria-hidden="true"></span>
+                </span>
+            </label>
+
+            <fieldset class="setting-group">
+                <legend>Orientamento calcolatore</legend>
+                <p>In verticale, scegli verso chi deve essere rivolto il tastierino.</p>
+                <label class="orientation-option">
+                    <input type="radio" name="calculatorOrientation" value="fixed" onchange="updateCalculatorOrientation(this.value)">
+                    <span>
+                        <strong>Sempre dal mio lato</strong>
+                        <small>Il calcolatore resta orientato come adesso.</small>
+                    </span>
+                </label>
+                <label class="orientation-option">
+                    <input type="radio" name="calculatorOrientation" value="player" onchange="updateCalculatorOrientation(this.value)">
+                    <span>
+                        <strong>Verso il giocatore</strong>
+                        <small>Si capovolge quando vengono toccati i Life Points dall'altro lato.</small>
+                    </span>
+                </label>
+            </fieldset>
+        </div>
+
+        <div class="settings-storage">
+            <span class="storage-dot" aria-hidden="true"></span>
+            <div>
+                <strong id="settingsStorageTitle">Preferenze della sessione</strong>
+                <small id="settingsStorageText">Le modifiche non verranno salvate alla prossima apertura.</small>
+            </div>
+            <button id="enableCookiesBtn" class="storage-action" onclick="acceptCookies(true)">Salva</button>
+        </div>
+    </div>
+</div>
+
+<!-- Cookie consent -->
+<div class="cookie-overlay" id="cookieOverlay" role="dialog" aria-modal="true" aria-labelledby="cookieTitle">
+    <div class="cookie-box">
+        <div class="cookie-icon" aria-hidden="true">LP</div>
+        <h2 id="cookieTitle">Salvare le tue preferenze?</h2>
+        <p>Questa app usa esclusivamente cookie facoltativi per ricordare suoni, animazioni e orientamento del calcolatore. Nessun tracciamento o pubblicità.</p>
+        <p class="cookie-note">Se rifiuti, l'app funziona normalmente ma dovrai reimpostare le preferenze a ogni apertura.</p>
+        <div class="cookie-buttons">
+            <button class="cookie-btn cookie-reject" onclick="rejectCookies()">Rifiuta</button>
+            <button class="cookie-btn cookie-accept" onclick="acceptCookies(false)">Accetta</button>
+        </div>
+    </div>
+</div>
+
 <!-- Confirm overlay -->
 <div class="confirm-overlay" id="confirmOverlay">
     <div class="confirm-box">
@@ -157,7 +240,7 @@
     </div>
 </div>
 
-<script src="script.js"></script>
+<script src="script.js?v=3"></script>
 
 </body>
 </html>

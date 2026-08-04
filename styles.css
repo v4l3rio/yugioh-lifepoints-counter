@@ -87,7 +87,49 @@ body {
     justify-content: center;
     cursor: pointer;
     position: relative;
+    isolation: isolate;
+    overflow: hidden;
     transition: background 0.3s ease;
+}
+
+.player::before {
+    content: '';
+    position: absolute;
+    inset: -35%;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0;
+    background:
+        radial-gradient(circle at 25% 25%, hsla(var(--lp-hue), 82%, 55%, var(--lp-strength)), transparent 38%),
+        radial-gradient(circle at 75% 75%, hsla(var(--lp-hue), 90%, 44%, var(--lp-strength)), transparent 42%),
+        linear-gradient(115deg, transparent 25%, hsla(var(--lp-hue), 84%, 50%, var(--lp-strength)) 50%, transparent 75%);
+    background-size: 140% 140%, 150% 150%, 200% 200%;
+    filter: blur(14px) saturate(1.15);
+    transition: opacity 0.35s ease;
+}
+
+.life-animation-enabled .player::before {
+    opacity: 1;
+    animation: life-energy-flow 7s ease-in-out infinite alternate;
+}
+
+.player > * {
+    position: relative;
+    z-index: 1;
+}
+
+@keyframes life-energy-flow {
+    0% {
+        background-position: 0% 15%, 100% 85%, 0% 50%;
+        transform: translate3d(-2%, -1%, 0) rotate(-2deg);
+    }
+    50% {
+        background-position: 60% 40%, 35% 65%, 100% 50%;
+    }
+    100% {
+        background-position: 100% 85%, 0% 20%, 15% 50%;
+        transform: translate3d(2%, 1%, 0) rotate(2deg);
+    }
 }
 
 .player:active { background: rgba(255,255,255,0.02); }
@@ -149,7 +191,7 @@ body {
 .bottom-bar {
     background: var(--surface);
     display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.4fr) repeat(3, minmax(0, 1fr));
     grid-template-rows: 1fr;
     gap: 8px;
     padding: 10px;
@@ -213,6 +255,12 @@ body {
 }
 
 .calc-overlay.active { display: flex; opacity: 1; }
+
+@media (orientation: portrait) {
+    .calc-overlay.player-facing {
+        transform: rotate(180deg);
+    }
+}
 
 .calc-close-x {
     position: absolute;
@@ -343,6 +391,348 @@ body {
     font-weight: 700;
 }
 .calc-key-halve:active { background: rgba(140, 120, 180, 0.35); }
+
+/* ─── Settings ─── */
+.settings-overlay,
+.cookie-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    padding: 18px;
+    background: rgba(0,0,0,0.88);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-overlay {
+    z-index: 300;
+}
+
+.cookie-overlay {
+    z-index: 400;
+}
+
+.settings-overlay.active,
+.cookie-overlay.active {
+    display: flex;
+}
+
+.settings-panel {
+    width: min(100%, 560px);
+    max-height: 100%;
+    overflow-y: auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    box-shadow: 0 28px 80px rgba(0,0,0,0.48);
+}
+
+.settings-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 22px 22px 18px;
+    background: rgba(20,20,20,0.96);
+    border-bottom: 1px solid var(--border);
+}
+
+.settings-kicker {
+    margin-bottom: 3px;
+    color: var(--p1);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+}
+
+.settings-header h2,
+.cookie-box h2 {
+    font-size: 1.65rem;
+    line-height: 1.1;
+}
+
+.settings-close {
+    width: 46px;
+    height: 46px;
+    flex: 0 0 auto;
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    background: var(--surface-2);
+    color: var(--text-muted);
+    font-size: 1.25rem;
+    cursor: pointer;
+}
+
+.settings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px;
+}
+
+.setting-row,
+.setting-group {
+    border: 1px solid var(--border);
+    border-radius: 17px;
+    background: var(--surface-2);
+}
+
+.setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 17px;
+    cursor: pointer;
+}
+
+.setting-row > span:first-child,
+.orientation-option span,
+.settings-storage div {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.setting-row strong,
+.orientation-option strong,
+.settings-storage strong {
+    font-size: 0.98rem;
+}
+
+.setting-row small,
+.orientation-option small,
+.settings-storage small,
+.setting-group p {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    line-height: 1.35;
+}
+
+.switch {
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 auto;
+}
+
+.switch input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+.switch-track {
+    position: relative;
+    width: 52px;
+    height: 30px;
+    border-radius: 999px;
+    background: #303030;
+    border: 1px solid #3b3b3b;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.switch-track::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    transition: transform 0.2s, background 0.2s;
+}
+
+.switch input:checked + .switch-track {
+    background: rgba(74, 158, 107, 0.32);
+    border-color: var(--heal);
+}
+
+.switch input:checked + .switch-track::after {
+    background: #72c994;
+    transform: translateX(22px);
+}
+
+.switch input:focus-visible + .switch-track,
+.orientation-option input:focus-visible + span,
+button:focus-visible {
+    outline: 2px solid var(--p2);
+    outline-offset: 3px;
+}
+
+.setting-group {
+    padding: 17px;
+}
+
+.setting-group legend {
+    padding: 0 5px;
+    color: var(--text);
+    font-size: 0.98rem;
+    font-weight: 700;
+}
+
+.setting-group > p {
+    margin: 2px 0 13px;
+}
+
+.orientation-option {
+    position: relative;
+    display: block;
+    margin-top: 8px;
+    cursor: pointer;
+}
+
+.orientation-option input {
+    position: absolute;
+    opacity: 0;
+}
+
+.orientation-option span {
+    padding: 13px 14px 13px 42px;
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    background: #181818;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.orientation-option span::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 15px;
+    width: 15px;
+    height: 15px;
+    border: 2px solid #555;
+    border-radius: 50%;
+    transform: translateY(-50%);
+}
+
+.orientation-option input:checked + span {
+    border-color: var(--p2);
+    background: rgba(107, 159, 195, 0.08);
+}
+
+.orientation-option input:checked + span::before {
+    border-color: var(--p2);
+    box-shadow: inset 0 0 0 4px #181818;
+    background: var(--p2);
+}
+
+.settings-storage {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 11px;
+    margin: 0 16px 16px;
+    padding: 14px;
+    border: 1px solid rgba(212, 160, 83, 0.22);
+    border-radius: 15px;
+    background: rgba(212, 160, 83, 0.06);
+}
+
+.settings-storage.saved {
+    border-color: rgba(74, 158, 107, 0.25);
+    background: rgba(74, 158, 107, 0.07);
+}
+
+.storage-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--p1);
+    box-shadow: 0 0 12px var(--p1);
+}
+
+.settings-storage.saved .storage-dot {
+    background: var(--heal);
+    box-shadow: 0 0 12px var(--heal);
+}
+
+.storage-action {
+    border: 1px solid var(--p1);
+    border-radius: 10px;
+    padding: 9px 12px;
+    background: transparent;
+    color: var(--p1);
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+.cookie-box {
+    width: min(100%, 440px);
+    padding: 30px;
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    background: var(--surface);
+    box-shadow: 0 28px 80px rgba(0,0,0,0.55);
+}
+
+.cookie-icon {
+    display: grid;
+    width: 54px;
+    height: 54px;
+    margin-bottom: 20px;
+    place-items: center;
+    border: 1px solid rgba(212, 160, 83, 0.4);
+    border-radius: 16px;
+    background: rgba(212, 160, 83, 0.1);
+    color: var(--p1);
+    font-family: 'DM Mono', monospace;
+    font-weight: 700;
+}
+
+.cookie-box > p {
+    margin-top: 14px;
+    color: var(--text-muted);
+    font-size: 0.94rem;
+    line-height: 1.5;
+}
+
+.cookie-box .cookie-note {
+    color: var(--text-dim);
+    font-size: 0.8rem;
+}
+
+.cookie-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1.25fr;
+    gap: 10px;
+    margin-top: 24px;
+}
+
+.cookie-btn {
+    min-height: 52px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.cookie-reject {
+    background: var(--surface-2);
+    color: var(--text-muted);
+}
+
+.cookie-accept {
+    border-color: var(--p1);
+    background: var(--p1);
+    color: #171009;
+}
 
 /* ─── Confirm overlay ─── */
 .confirm-overlay {
@@ -534,7 +924,7 @@ body {
     .player-divider { width: 1px; height: auto; }
     .player-1 { transform: none; }
 
-    .bottom-bar { padding: 6px 10px; gap: 6px; grid-template-columns: minmax(0,2fr) minmax(0,2fr) minmax(0,1fr) minmax(0,1fr); }
+    .bottom-bar { padding: 6px 10px; gap: 6px; grid-template-columns: minmax(0,1.4fr) minmax(0,1.4fr) repeat(3, minmax(0,1fr)); }
     .bottom-btn { padding: 10px 6px; font-size: 0.7rem; gap: 4px; }
     .bottom-btn svg { width: 20px; height: 20px; }
 
@@ -576,7 +966,7 @@ body {
 @media (orientation: portrait) {
     .calc-grid-section { display: contents; }
 
-    .bottom-bar { grid-template-columns: minmax(0,2fr) minmax(0,2fr) minmax(0,1fr) minmax(0,1fr); }
+    .bottom-bar { grid-template-columns: minmax(0,1.4fr) minmax(0,1.4fr) repeat(3, minmax(0,1fr)); }
 
     /* Stack players vertically */
     .players-row {
@@ -593,5 +983,36 @@ body {
     /* Top player rotated toward opponent */
     .player-1 {
         transform: rotate(180deg);
+    }
+}
+
+@media (max-width: 380px) and (orientation: portrait) {
+    .bottom-btn {
+        font-size: 0.72rem;
+    }
+
+    .bottom-btn-small {
+        font-size: 0.6rem;
+    }
+
+    .bottom-btn svg,
+    .bottom-btn-small svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .settings-overlay,
+    .cookie-overlay {
+        padding: 10px;
+    }
+
+    .cookie-box {
+        padding: 24px 20px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .life-animation-enabled .player::before {
+        animation: none;
     }
 }

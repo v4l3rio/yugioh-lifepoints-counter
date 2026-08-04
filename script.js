@@ -1,4 +1,13 @@
 const START_LP = 8000;
+const COOKIE_CONSENT_NAME = 'lp_cookie_consent';
+const SETTINGS_COOKIE_NAME = 'lp_counter_settings';
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+const DEFAULT_SETTINGS = Object.freeze({
+    soundEnabled: true,
+    lifeAnimationEnabled: true,
+    calculatorOrientation: 'fixed'
+});
+
 let lp = { 1: START_LP, 2: START_LP };
 let logs = { 1: [], 2: [] };
 let timerInterval = null;
@@ -7,6 +16,8 @@ let timerRunning = false;
 let history = [];
 let calcPlayer = null;
 let calcInput = '';
+let cookieConsent = 'pending';
+let settings = { ...DEFAULT_SETTINGS };
 
 const lpSound = new Audio('lifedrop_sound.mp3');
 
@@ -47,12 +58,24 @@ document.addEventListener('visibilitychange', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function playSound() {
+    if (!settings.soundEnabled) return;
     lpSound.currentTime = 0;
-    lpSound.play();
+    lpSound.play().catch(() => {});
+}
+
+function updateLifeVisual(player, value = lp[player]) {
+    const ratio = Math.max(0, Math.min(value / START_LP, 1));
+    const hue = Math.round(ratio * 120);
+    const strength = (0.13 + ratio * 0.13).toFixed(3);
+    const playerElement = document.querySelector('.player-' + player);
+
+    playerElement.style.setProperty('--lp-hue', hue);
+    playerElement.style.setProperty('--lp-strength', strength);
 }
 
 function updateDisplay(player) {
     document.getElementById('lp' + player).textContent = lp[player];
+    updateLifeVisual(player);
 }
 
 function animateLP(player, from, to, type) {
@@ -71,6 +94,7 @@ function animateLP(player, from, to, type) {
         const ease = 1 - Math.pow(1 - progress, 3);
         const current = Math.round(from + diff * ease);
         el.textContent = Math.max(0, current);
+        updateLifeVisual(player, current);
         if (progress < 1) {
             requestAnimationFrame(tick);
         } else {
@@ -153,11 +177,15 @@ function openCalc(player) {
     const overlay = document.getElementById('calcOverlay');
     overlay.classList.remove('p1', 'p2');
     overlay.classList.add('p' + player);
+    overlay.classList.toggle(
+        'player-facing',
+        settings.calculatorOrientation === 'player' && player === 1
+    );
     overlay.classList.add('active');
 }
 
 function closeCalc() {
-    document.getElementById('calcOverlay').classList.remove('active');
+    document.getElementById('calcOverlay').classList.remove('active', 'player-facing');
     calcPlayer = null;
     calcInput = '';
 }
@@ -188,8 +216,9 @@ function calcHalve() {
     history.push({ player: player, amount: amount, lpBefore: lpBefore });
     lp[player] = newLP;
     addLog(player, amount);
+    updateLifeVisual(player, newLP);
 
-    document.getElementById('calcOverlay').classList.remove('active');
+    document.getElementById('calcOverlay').classList.remove('active', 'player-facing');
     calcPlayer = null;
     calcInput = '';
 
@@ -206,8 +235,9 @@ function calcApply(sign) {
     history.push({ player: player, amount: amount, lpBefore: lpBefore });
     lp[player] = Math.max(0, lp[player] + amount);
     addLog(player, amount);
+    updateLifeVisual(player, lp[player]);
 
-    document.getElementById('calcOverlay').classList.remove('active');
+    document.getElementById('calcOverlay').classList.remove('active', 'player-facing');
     calcPlayer = null;
     calcInput = '';
 
@@ -216,6 +246,11 @@ function calcApply(sign) {
 }
 
 document.addEventListener('keydown', function(e) {
+    if (document.getElementById('settingsOverlay').classList.contains('active')) {
+        if (e.key === 'Escape') closeSettings();
+        return;
+    }
+
     if (!document.getElementById('calcOverlay').classList.contains('active')) return;
     if (e.key >= '0' && e.key <= '9') calcPress(e.key);
     else if (e.key === 'Backspace') calcBack();
@@ -314,3 +349,144 @@ function rollDice() {
 function closeDice() {
     document.getElementById('diceOverlay').classList.remove('active');
 }
+
+function getCookie(name) {
+    const prefix = name + '=';
+    const cookie = document.cookie
+        .split(';')
+        .map(value => value.trim())
+        .find(value => value.startsWith(prefix));
+
+    return cookie ? decodeURIComponent(cookie.slice(prefix.length)) : null;
+}
+
+function setCookie(name, value) {
+    const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+    document.cookie = name + '=' + encodeURIComponent(value)
+        + '; Max-Age=' + COOKIE_MAX_AGE
+        + '; Path=/; SameSite=Lax'
+        + secure;
+}
+
+function deleteCookie(name) {
+    document.cookie = name + '=; Max-Age=0; Path=/; SameSite=Lax';
+}
+
+function loadSettings() {
+    const stored = getCookie(SETTINGS_COOKIE_NAME);
+    if (!stored) return { ...DEFAULT_SETTINGS };
+
+    try {
+        const parsed = JSON.parse(stored);
+        return {
+            soundEnabled: typeof parsed.soundEnabled === 'boolean'
+                ? parsed.soundEnabled
+                : DEFAULT_SETTINGS.soundEnabled,
+            lifeAnimationEnabled: typeof parsed.lifeAnimationEnabled === 'boolean'
+                ? parsed.lifeAnimationEnabled
+                : DEFAULT_SETTINGS.lifeAnimationEnabled,
+            calculatorOrientation: ['fixed', 'player'].includes(parsed.calculatorOrientation)
+                ? parsed.calculatorOrientation
+                : DEFAULT_SETTINGS.calculatorOrientation
+        };
+    } catch (_) {
+        return { ...DEFAULT_SETTINGS };
+    }
+}
+
+function persistSettings() {
+    if (cookieConsent !== 'accepted') return;
+    setCookie(SETTINGS_COOKIE_NAME, JSON.stringify(settings));
+}
+
+function applySettings() {
+    document.body.classList.toggle('life-animation-enabled', settings.lifeAnimationEnabled);
+    updateLifeVisual(1);
+    updateLifeVisual(2);
+
+    if (!settings.soundEnabled) {
+        lpSound.pause();
+        lpSound.currentTime = 0;
+    }
+}
+
+function syncSettingsControls() {
+    document.getElementById('soundSetting').checked = settings.soundEnabled;
+    document.getElementById('animationSetting').checked = settings.lifeAnimationEnabled;
+
+    document.querySelectorAll('input[name="calculatorOrientation"]').forEach(input => {
+        input.checked = input.value === settings.calculatorOrientation;
+    });
+}
+
+function updateStorageStatus() {
+    const accepted = cookieConsent === 'accepted';
+    document.getElementById('settingsStorageTitle').textContent = accepted
+        ? 'Preferenze salvate'
+        : 'Preferenze della sessione';
+    document.getElementById('settingsStorageText').textContent = accepted
+        ? 'Le impostazioni verranno ricordate su questo dispositivo.'
+        : 'Le modifiche non verranno salvate alla prossima apertura.';
+    document.getElementById('enableCookiesBtn').hidden = accepted;
+    document.querySelector('.settings-storage').classList.toggle('saved', accepted);
+}
+
+function openSettings() {
+    syncSettingsControls();
+    updateStorageStatus();
+    document.getElementById('settingsOverlay').classList.add('active');
+}
+
+function closeSettings() {
+    document.getElementById('settingsOverlay').classList.remove('active');
+}
+
+function updateBooleanSetting(key, value) {
+    if (!['soundEnabled', 'lifeAnimationEnabled'].includes(key)) return;
+    settings[key] = value;
+    applySettings();
+    persistSettings();
+}
+
+function updateCalculatorOrientation(value) {
+    if (!['fixed', 'player'].includes(value)) return;
+    settings.calculatorOrientation = value;
+    persistSettings();
+}
+
+function acceptCookies(fromSettings) {
+    cookieConsent = 'accepted';
+    setCookie(COOKIE_CONSENT_NAME, 'accepted');
+    persistSettings();
+    document.getElementById('cookieOverlay').classList.remove('active');
+    updateStorageStatus();
+
+    if (fromSettings) syncSettingsControls();
+}
+
+function rejectCookies() {
+    cookieConsent = 'rejected';
+    deleteCookie(COOKIE_CONSENT_NAME);
+    deleteCookie(SETTINGS_COOKIE_NAME);
+    document.getElementById('cookieOverlay').classList.remove('active');
+    updateStorageStatus();
+}
+
+function initializePreferences() {
+    if (getCookie(COOKIE_CONSENT_NAME) === 'accepted') {
+        cookieConsent = 'accepted';
+        settings = loadSettings();
+    }
+
+    applySettings();
+    syncSettingsControls();
+    updateStorageStatus();
+
+    if (cookieConsent !== 'accepted') {
+        requestAnimationFrame(() => {
+            document.getElementById('cookieOverlay').classList.add('active');
+        });
+    }
+}
+
+initializePreferences();
