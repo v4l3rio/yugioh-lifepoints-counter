@@ -11,7 +11,7 @@
     <link rel="icon" href="../favicon.ico">
     <link rel="apple-touch-icon" href="../apple_icon.png">
     <link rel="manifest" href="manifest.webmanifest">
-    <link rel="stylesheet" href="styles.css?v=5">
+    <link rel="stylesheet" href="styles.css?v=6">
 </head>
 <body>
     <main class="app-shell" id="appShell">
@@ -93,21 +93,25 @@
                 </button>
             </header>
 
-            <div class="equation" aria-live="polite">
-                <span id="equationBefore">8000</span>
-                <span id="equationOperator">−</span>
-                <strong id="equationAmount"><span id="equationTyped">0</span><span class="equation-ghost" id="equationGhost"></span></strong>
-                <span>=</span>
-                <strong id="equationResult">8000</strong>
-            </div>
+            <div class="calculator-layout">
+                <div class="calculator-readout">
+                    <div class="equation" aria-live="polite">
+                        <span id="equationBefore">8000</span>
+                        <span id="equationOperator">−</span>
+                        <strong id="equationAmount"><span id="equationTyped">0</span><span class="equation-ghost" id="equationGhost"></span></strong>
+                        <span>=</span>
+                        <strong id="equationResult">8000</strong>
+                    </div>
 
-            <div class="quick-values" aria-label="Valori rapidi">
-                <button type="button" data-quick-value="100">100</button>
-                <button type="button" data-quick-value="500">500</button>
-                <button type="button" data-quick-value="1000">1000</button>
-            </div>
+                    <div class="quick-values" aria-label="Valori rapidi">
+                        <button type="button" data-quick-value="100">100</button>
+                        <button type="button" data-quick-value="500">500</button>
+                        <button type="button" data-quick-value="1000">1000</button>
+                    </div>
+                </div>
 
-            <div class="number-pad" aria-label="Tastierino numerico">
+                <div class="calculator-input">
+                    <div class="number-pad" aria-label="Tastierino numerico">
                 <button type="button" data-digit="1">1</button>
                 <button type="button" data-digit="2">2</button>
                 <button type="button" data-digit="3">3</button>
@@ -124,18 +128,20 @@
                 <button class="number-pad__zero-shortcut" type="button" data-digit="00">00</button>
                 <button class="number-pad__zero-shortcut number-pad__zero-shortcut--wide" type="button" data-digit="000">000</button>
                 <button class="number-pad__utility" type="button" data-calc-action="clear">C</button>
-            </div>
+                    </div>
 
-            <div class="calculator-actions">
-                <button class="calc-action calc-action--damage" type="button" data-operation="damage">
-                    <span class="calc-symbol">−</span><span>Danno</span>
-                </button>
-                <button class="calc-action calc-action--heal" type="button" data-operation="heal">
-                    <span class="calc-symbol">+</span><span>Recupera</span>
-                </button>
-                <button class="calc-action calc-action--halve" type="button" data-operation="halve">
-                    <span class="calc-symbol">÷2</span><span>Dimezza</span>
-                </button>
+                    <div class="calculator-actions">
+                        <button class="calc-action calc-action--damage" type="button" data-operation="damage">
+                            <span class="calc-symbol">−</span><span>Danno</span>
+                        </button>
+                        <button class="calc-action calc-action--heal" type="button" data-operation="heal">
+                            <span class="calc-symbol">+</span><span>Recupera</span>
+                        </button>
+                        <button class="calc-action calc-action--halve" type="button" data-operation="halve">
+                            <span class="calc-symbol">÷2</span><span>Dimezza</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </section>
     </div>
@@ -206,6 +212,11 @@
                 </button>
             </header>
             <div class="history-list" id="historyList"></div>
+            <nav class="history-pagination" id="historyPagination" aria-label="Pagine cronologia">
+                <button class="secondary-button" id="historyPrevious" type="button">Precedenti</button>
+                <span id="historyPageInfo">1 / 1</span>
+                <button class="secondary-button" id="historyNext" type="button">Successive</button>
+            </nav>
         </section>
     </div>
 
@@ -232,8 +243,15 @@
                 <div><span class="sheet-kicker">LP Counter</span><h2 id="settingsTitle">Impostazioni</h2></div>
             </header>
 
+            <nav class="settings-tabs" aria-label="Sezioni impostazioni">
+                <button class="is-active" type="button" data-settings-tab="match">Partita</button>
+                <button type="button" data-settings-tab="interaction">Comandi</button>
+                <button type="button" data-settings-tab="appearance">Aspetto</button>
+                <button type="button" data-settings-tab="privacy">Privacy</button>
+            </nav>
+
             <div class="settings-content">
-                <section class="settings-section">
+                <section class="settings-section is-active" data-settings-section="match">
                     <h3>Partita</h3>
                     <label class="field-row"><span><strong>Nome giocatore 1</strong><small>Lato superiore</small></span><input id="settingName1" type="text" maxlength="18" autocomplete="off"></label>
                     <label class="field-row"><span><strong>Nome giocatore 2</strong><small>Lato inferiore</small></span><input id="settingName2" type="text" maxlength="18" autocomplete="off"></label>
@@ -242,7 +260,7 @@
                     <label class="setting-toggle"><span><strong>Avvisi temporali</strong><small>Notifica a 10, 5 e 1 minuto</small></span><input id="settingTimeAlerts" type="checkbox"><i aria-hidden="true"></i></label>
                 </section>
 
-                <section class="settings-section">
+                <section class="settings-section" data-settings-section="interaction" hidden>
                     <h3>Interazione</h3>
                     <label class="setting-toggle"><span><strong>Suoni</strong><small>Effetti LP e avvisi del timer</small></span><input id="settingSound" type="checkbox"><i aria-hidden="true"></i></label>
                     <label class="setting-toggle"><span><strong>Feedback aptico</strong><small>Vibrazione leggera sulle azioni</small></span><input id="settingHaptics" type="checkbox"><i aria-hidden="true"></i></label>
@@ -251,7 +269,7 @@
                     <label class="field-row"><span><strong>Orientamento calcolatore</strong><small>In modalità verticale</small></span><select id="settingCalculatorOrientation"><option value="player">Verso il giocatore</option><option value="fixed">Sempre dal mio lato</option></select></label>
                 </section>
 
-                <section class="settings-section">
+                <section class="settings-section" data-settings-section="appearance" hidden>
                     <h3>Aspetto</h3>
                     <label class="setting-toggle"><span><strong>Gradiente dinamico LP</strong><small>Verde ad alti LP, rosso vicino allo zero</small></span><input id="settingLifeGradient" type="checkbox"><i aria-hidden="true"></i></label>
                     <label class="setting-toggle"><span><strong>Movimento gradiente</strong><small>Anima lentamente lo sfondo dei giocatori</small></span><input id="settingAnimations" type="checkbox"><i aria-hidden="true"></i></label>
@@ -261,7 +279,7 @@
                     <label class="setting-toggle"><span><strong>Contrasto elevato</strong><small>Testi e controlli più evidenti</small></span><input id="settingHighContrast" type="checkbox"><i aria-hidden="true"></i></label>
                 </section>
 
-                <section class="settings-section settings-section--storage">
+                <section class="settings-section settings-section--storage" data-settings-section="privacy" hidden>
                     <h3>Privacy e preferenze</h3>
                     <div class="storage-status"><span class="storage-status__dot" aria-hidden="true"></span><span><strong id="storageTitle">Preferenze della sessione</strong><small id="storageDescription">Le modifiche non sono salvate sul dispositivo.</small></span></div>
                     <button class="secondary-button secondary-button--full" id="enableStorageButton" type="button">Consenti e salva preferenze</button>
@@ -301,6 +319,6 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <div class="sr-only" id="liveRegion" aria-live="assertive"></div>
 
-    <script src="app.js?v=5"></script>
+    <script src="app.js?v=6"></script>
 </body>
 </html>

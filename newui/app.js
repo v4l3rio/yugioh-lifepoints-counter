@@ -28,6 +28,7 @@ const state = {
     consent: 'pending',
     life: { 1: DEFAULT_SETTINGS.startLp, 2: DEFAULT_SETTINGS.startLp },
     history: [],
+    historyPage: 0,
     wins: { 1: 0, 2: 0 },
     gameNumber: 1,
     timerSeconds: DEFAULT_SETTINGS.timerMinutes * 60,
@@ -59,7 +60,8 @@ function cacheElements() {
         'undoAction', 'calculatorOverlay', 'calculatorPlayer', 'equationBefore',
         'equationOperator', 'equationAmount', 'equationTyped', 'equationGhost', 'equationResult', 'toolOverlay', 'toolTitle',
         'toolResult', 'toolCaption', 'rerollButton', 'moreOverlay', 'historyOverlay',
-        'historyList', 'winnerOverlay', 'winnerName1', 'winnerName2', 'settingsOverlay',
+        'historyList', 'historyPagination', 'historyPrevious', 'historyNext', 'historyPageInfo',
+        'winnerOverlay', 'winnerName1', 'winnerName2', 'settingsOverlay',
         'confirmOverlay', 'confirmTitle', 'confirmDescription', 'confirmCancel', 'confirmAccept',
         'cookieOverlay', 'acceptCookies', 'rejectCookies', 'toast', 'liveRegion',
         'storageTitle', 'storageDescription', 'enableStorageButton', 'clearStorageButton'
@@ -446,6 +448,7 @@ function changeLife(player, nextLife, source = 'manual') {
         source,
         timestamp: new Date()
     });
+    state.historyPage = 0;
 
     animateLifeValue(player, before, after);
     showLifeChange(player, delta);
@@ -498,6 +501,7 @@ function resetLifePoints(options = {}) {
     state.life[1] = state.settings.startLp;
     state.life[2] = state.settings.startLp;
     if (clearHistory) state.history = [];
+    state.historyPage = 0;
     if (resetTimerToo) resetTimer();
 
     [1, 2].forEach(player => {
@@ -791,10 +795,24 @@ function secureRandom(max) {
 function renderHistory() {
     if (!state.history.length) {
         elements.historyList.innerHTML = '<div class="history-empty">Nessuna modifica ai Life Points in questo duello.</div>';
+        elements.historyPagination.hidden = true;
         return;
     }
 
-    elements.historyList.innerHTML = state.history.map(entry => {
+    const isLandscape = typeof window.matchMedia === 'function'
+        && window.matchMedia('(orientation: landscape)').matches;
+    const pageSize = isLandscape || window.innerHeight < 720 ? 4 : 6;
+    const totalPages = Math.max(1, Math.ceil(state.history.length / pageSize));
+    state.historyPage = Math.max(0, Math.min(state.historyPage, totalPages - 1));
+    const start = state.historyPage * pageSize;
+    const entries = state.history.slice(start, start + pageSize);
+
+    elements.historyPagination.hidden = totalPages <= 1;
+    elements.historyPrevious.disabled = state.historyPage === 0;
+    elements.historyNext.disabled = state.historyPage >= totalPages - 1;
+    elements.historyPageInfo.textContent = (state.historyPage + 1) + ' / ' + totalPages;
+
+    elements.historyList.innerHTML = entries.map(entry => {
         const time = entry.timestamp.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
         const typeClass = entry.delta < 0 ? 'is-damage' : 'is-heal';
         return '<article class="history-item" style="--item-player-color:' + playerColor(entry.player) + '">'
@@ -804,6 +822,20 @@ function renderHistory() {
             + '<span class="history-item__delta ' + typeClass + '">' + formatDelta(entry.delta) + '</span>'
             + '</article>';
     }).join('');
+}
+
+function showSettingsSection(name) {
+    document.querySelectorAll('[data-settings-tab]').forEach(button => {
+        const active = button.dataset.settingsTab === name;
+        button.classList.toggle('is-active', active);
+        button.setAttribute('aria-selected', String(active));
+    });
+
+    document.querySelectorAll('[data-settings-section]').forEach(section => {
+        const active = section.dataset.settingsSection === name;
+        section.hidden = !active;
+        section.classList.toggle('is-active', active);
+    });
 }
 
 function escapeHtml(value) {
@@ -879,6 +911,7 @@ function handleDockAction(action) {
 function handleMenuAction(action) {
     closeOverlay('moreOverlay');
     if (action === 'history') {
+        state.historyPage = 0;
         renderHistory();
         openOverlay('historyOverlay');
     } else if (action === 'winner') {
@@ -886,6 +919,7 @@ function handleMenuAction(action) {
     } else if (action === 'settings') {
         syncSettingsControls();
         renderStorageStatus();
+        showSettingsSection('match');
         openOverlay('settingsOverlay');
     } else if (action === 'reset-lp') {
         requestConfirmation(
@@ -931,6 +965,10 @@ function registerMainListeners() {
         button.addEventListener('click', () => handleMenuAction(button.dataset.menuAction));
     });
 
+    document.querySelectorAll('[data-settings-tab]').forEach(button => {
+        button.addEventListener('click', () => showSettingsSection(button.dataset.settingsTab));
+    });
+
     document.querySelectorAll('[data-digit]').forEach(button => {
         button.addEventListener('click', () => calculatorPressDigit(button.dataset.digit));
     });
@@ -963,10 +1001,24 @@ function registerMainListeners() {
     elements.rejectCookies.addEventListener('click', rejectPreferenceCookies);
     elements.enableStorageButton.addEventListener('click', acceptPreferenceCookies);
     elements.clearStorageButton.addEventListener('click', clearSavedPreferences);
+    elements.historyPrevious.addEventListener('click', () => {
+        state.historyPage = Math.max(0, state.historyPage - 1);
+        renderHistory();
+    });
+    elements.historyNext.addEventListener('click', () => {
+        state.historyPage += 1;
+        renderHistory();
+    });
 
     document.addEventListener('keydown', handleKeyboard);
+    document.addEventListener('touchmove', event => {
+        if (event.cancelable) event.preventDefault();
+    }, { passive: false });
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible' && state.timerRunning) requestWakeLock();
+    });
+    window.addEventListener('resize', () => {
+        if (elements.historyOverlay.classList.contains('is-open')) renderHistory();
     });
 }
 
