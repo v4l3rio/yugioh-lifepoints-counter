@@ -1,5 +1,5 @@
 {
-  "name": "LP Counter — New UI",
+  "name": "LP Counter",
   "short_name": "LP Counter",
   "description": "Segnapunti da tavolo per duelli a due giocatori.",
   "start_url": "./",
@@ -17,7 +17,7 @@
       "purpose": "any maskable"
     },
     {
-      "src": "../apple_icon.png",
+      "src": "apple_icon.png",
       "sizes": "180x180",
       "type": "image/png",
       "purpose": "any"

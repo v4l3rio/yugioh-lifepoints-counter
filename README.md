@@ -1,12 +1,14 @@
-# LP Counter 🎴
+# LP Counter
 
 A simple, mobile-friendly Life Points tracker for two-player card games like Yu-Gi-Oh!
 
-No installation required — just open `index.html` in a browser. 🌐
+No installation required — just open `index.html` in a browser.
 
-## Experimental New UI
+## Interfaces
 
-A redesigned, feature-rich interface is available at [`/newui`](./newui/). The original interface remains unchanged at the project root while the new experience is refined.
+The redesigned interface is the default experience at the project root. The previous interface remains available at [`/old`](./old/).
+
+Existing links to [`/newui`](./newui/) redirect to the default interface.
 
 ## Features
 
@@ -47,6 +49,9 @@ When the calculator is open:
 |------|-------------|
 | `index.html` | Main app structure |
 | `styles.css` | Styles and animations |
-| `script.js` | App logic |
+| `app.js` | App logic |
+| `manifest.webmanifest` | PWA metadata |
+| `sw.js` | Offline app shell |
+| `old/` | Previous interface |
 | `favicon.ico` | App icon |
 | `lifedrop_sound.mp3` | Sound effect for LP changes |

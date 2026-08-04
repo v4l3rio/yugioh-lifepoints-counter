@@ -2,245 +2,323 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+    <meta name="theme-color" content="#080a0d">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="LP Counter">
     <title>LP Counter</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" href="favicon.ico">
     <link rel="apple-touch-icon" href="apple_icon.png">
-    <link rel="stylesheet" href="styles.css?v=3">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="stylesheet" href="styles.css?v=8">
 </head>
 <body>
-
-<!-- Top bar: Timer -->
-<div class="top-bar">
-    <button class="timer-btn" id="timerBtn" onclick="toggleTimer()">&#9654;</button>
-    <div class="timer-display" id="timerDisplay">00:00</div>
-</div>
-
-<!-- Players -->
-<div class="players-row">
-    <div class="player player-1" onclick="openCalc(1)">
-        <div class="player-name">Giocatore 1</div>
-        <div class="lp-display" id="lp1">8000</div>
-        <div class="lp-log" id="log1"></div>
-    </div>
-    <div class="player-divider"></div>
-    <div class="player player-2" onclick="openCalc(2)">
-        <div class="player-name">Giocatore 2</div>
-        <div class="lp-display" id="lp2">8000</div>
-        <div class="lp-log" id="log2"></div>
-    </div>
-</div>
-
-<!-- Bottom bar -->
-<div class="bottom-bar">
-    <button class="bottom-btn" onclick="openDice()">
-        <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="4"/><circle cx="8" cy="8" r="1.2" fill="currentColor"/><circle cx="16" cy="8" r="1.2" fill="currentColor"/><circle cx="8" cy="16" r="1.2" fill="currentColor"/><circle cx="16" cy="16" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg>
-        Dado
-    </button>
-    <button class="bottom-btn" id="undoBtn" onclick="undo()">
-        <svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
-        Undo
-    </button>
-    <button class="bottom-btn bottom-btn-small" onclick="confirmReset(false)">
-        <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/><path d="M22 2v4h-4"/></svg>
-        Reset LP
-    </button>
-    <button class="bottom-btn bottom-btn-small" onclick="confirmReset(true)">
-        <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="m9 10 6 4"/><path d="m15 10-6 4"/></svg>
-        Reset Match
-    </button>
-    <button class="bottom-btn bottom-btn-small" onclick="openSettings()" aria-label="Apri impostazioni">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V21h-4v-.08A1.7 1.7 0 0 0 8.97 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.52-1.03H3v-4h.08A1.7 1.7 0 0 0 4.6 8.94a1.7 1.7 0 0 0-.34-1.88L4.2 7l2.83-2.83.06.06a1.7 1.7 0 0 0 1.88.34A1.7 1.7 0 0 0 10 3.05V3h4v.05a1.7 1.7 0 0 0 1.03 1.52 1.7 1.7 0 0 0 1.88-.34l.06-.06L19.8 7l-.06.06a1.7 1.7 0 0 0-.34 1.88A1.7 1.7 0 0 0 20.92 10H21v4h-.08A1.7 1.7 0 0 0 19.4 15Z"/></svg>
-        Impostazioni
-    </button>
-</div>
-
-<!-- Calculator overlay (fullscreen) -->
-<div class="calc-overlay" id="calcOverlay">
-    <button class="calc-close-x" onclick="closeCalc()">&#10005;</button>
-
-    <!-- Display area -->
-    <div class="calc-display-area">
-        <div class="calc-player-label" id="calcHeader">Giocatore 1</div>
-        <div class="calc-current-lp" id="calcCurrentLP">LP: 8000</div>
-        <div class="calc-input-display" id="calcDisplay">
-            <span class="calc-typed"></span><span class="calc-ghost">000</span>
-        </div>
-    </div>
-
-    <!-- Grid section (fills remaining space) -->
-    <div class="calc-grid-section">
-        <div class="calc-grid-wrap">
-            <div class="calc-row">
-                <button class="calc-key" onclick="calcPress('1')">1</button>
-                <button class="calc-key" onclick="calcPress('2')">2</button>
-                <button class="calc-key" onclick="calcPress('3')">3</button>
-            </div>
-            <div class="calc-row">
-                <button class="calc-key" onclick="calcPress('4')">4</button>
-                <button class="calc-key" onclick="calcPress('5')">5</button>
-                <button class="calc-key" onclick="calcPress('6')">6</button>
-            </div>
-            <div class="calc-row">
-                <button class="calc-key" onclick="calcPress('7')">7</button>
-                <button class="calc-key" onclick="calcPress('8')">8</button>
-                <button class="calc-key" onclick="calcPress('9')">9</button>
-            </div>
-            <div class="calc-row">
-                <button class="calc-key calc-key-util" onclick="calcBack()">&#9003;</button>
-                <button class="calc-key" onclick="calcPress('0')">0</button>
-                <button class="calc-key calc-key-util" onclick="calcClear()">C</button>
-            </div>
-            <div class="calc-row">
-                <button class="calc-key calc-key-minus" onclick="calcApply(-1)">&#8722;</button>
-                <button class="calc-key calc-key-plus" onclick="calcApply(1)">+</button>
-                <button class="calc-key calc-key-halve" onclick="calcHalve()">&divide;2</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Dice overlay -->
-<div class="dice-overlay" id="diceOverlay" onclick="closeDice()">
-    <div class="dice-container" onclick="event.stopPropagation()">
-        <div class="dice-wrapper" onclick="rollDice()">
-            <div class="dice" id="dice3d">
-                <div class="dice-side side-1">
-                    <div class="dot one-1"></div>
+    <main class="app-shell" id="appShell">
+        <section class="player-panel player-panel--opponent" id="playerPanel1" data-player="1" tabindex="0" role="button" aria-label="Modifica i Life Points del Giocatore 1">
+            <div class="player-ambient" aria-hidden="true"></div>
+            <div class="player-content">
+                <div class="player-meta">
+                    <span class="player-marker" aria-hidden="true"></span>
+                    <span class="player-name" id="playerName1">Giocatore 1</span>
                 </div>
-                <div class="dice-side side-2">
-                    <div class="dot two-1"></div>
-                    <div class="dot two-2"></div>
+                <div class="life-value" id="lifeValue1" aria-live="polite">8000</div>
+                <div class="last-change" id="lastChange1" aria-hidden="true"></div>
+                <div class="life-track" aria-hidden="true"><span id="lifeTrack1"></span></div>
+                <span class="tap-hint">Tocca per modificare</span>
+            </div>
+        </section>
+
+        <section class="duel-hub" aria-label="Timer e stato partita">
+            <div class="match-summary" aria-label="Stato partita">
+                <span class="match-round" id="matchRound">Duello 1</span>
+                <strong class="match-score" id="matchScore">0–0</strong>
+            </div>
+
+            <div class="timer-display" aria-live="off">
+                <span class="timer-pulse" aria-hidden="true"></span>
+                <span class="duel-clock" id="timer">40:00</span>
+            </div>
+
+            <button class="timer-control" id="timerControl" type="button" aria-label="Avvia timer">
+                <svg class="icon icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7Z"/></svg>
+                <svg class="icon icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg>
+            </button>
+        </section>
+
+        <section class="player-panel player-panel--owner" id="playerPanel2" data-player="2" tabindex="0" role="button" aria-label="Modifica i Life Points del Giocatore 2">
+            <div class="player-ambient" aria-hidden="true"></div>
+            <div class="player-content">
+                <div class="player-meta">
+                    <span class="player-marker" aria-hidden="true"></span>
+                    <span class="player-name" id="playerName2">Giocatore 2</span>
                 </div>
-                <div class="dice-side side-3">
-                    <div class="dot three-1"></div>
-                    <div class="dot three-2"></div>
-                    <div class="dot three-3"></div>
+                <div class="life-value" id="lifeValue2" aria-live="polite">8000</div>
+                <div class="last-change" id="lastChange2" aria-hidden="true"></div>
+                <div class="life-track" aria-hidden="true"><span id="lifeTrack2"></span></div>
+                <span class="tap-hint">Tocca per modificare</span>
+            </div>
+        </section>
+
+        <nav class="action-dock" aria-label="Strumenti partita">
+            <button class="dock-action" type="button" data-action="dice">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="8" cy="8" r="1"/><circle cx="16" cy="8" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="8" cy="16" r="1"/><circle cx="16" cy="16" r="1"/></svg>
+                <span>Dado</span>
+            </button>
+            <button class="dock-action" type="button" data-action="coin">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.2c.7-.7 1.5-1.1 2.5-1.1 1.7 0 3 1 3 2.3 0 1.4-1.3 2.2-3 2.2s-3 .9-3 2.3c0 1.2 1.3 2.2 3 2.2 1 0 1.8-.4 2.5-1.1"/></svg>
+                <span>Moneta</span>
+            </button>
+            <button class="dock-action" id="undoAction" type="button" data-action="undo" disabled>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 8-5 4 5 4"/><path d="M5 12h8a6 6 0 1 1 0 12"/></svg>
+                <span>Annulla</span>
+            </button>
+            <button class="dock-action" type="button" data-action="more">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>
+                <span>Altro</span>
+            </button>
+        </nav>
+    </main>
+
+    <div class="overlay calculator-overlay" id="calculatorOverlay" aria-hidden="true">
+        <div class="overlay-scrim" data-close="calculator"></div>
+        <section class="calculator-sheet" role="dialog" aria-modal="true" aria-labelledby="calculatorTitle">
+            <header class="sheet-header calculator-header">
+                <div>
+                    <span class="sheet-kicker" id="calculatorPlayer">Giocatore 1</span>
+                    <h2 id="calculatorTitle">Modifica Life Points</h2>
                 </div>
-                <div class="dice-side side-4">
-                    <div class="dot four-1"></div>
-                    <div class="dot four-2"></div>
-                    <div class="dot four-3"></div>
-                    <div class="dot four-4"></div>
+                <button class="icon-button" type="button" data-close="calculator" aria-label="Chiudi calcolatore">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+                </button>
+            </header>
+
+            <div class="calculator-layout">
+                <div class="calculator-readout">
+                    <div class="equation" aria-live="polite">
+                        <span id="equationBefore">8000</span>
+                        <span id="equationOperator">−</span>
+                        <strong id="equationAmount"><span id="equationTyped">0</span><span class="equation-ghost" id="equationGhost"></span></strong>
+                        <span>=</span>
+                        <strong id="equationResult">8000</strong>
+                    </div>
+
+                    <div class="quick-values" aria-label="Valori rapidi">
+                        <button type="button" data-quick-value="100">100</button>
+                        <button type="button" data-quick-value="500">500</button>
+                        <button type="button" data-quick-value="1000">1000</button>
+                    </div>
                 </div>
-                <div class="dice-side side-5">
-                    <div class="dot five-1"></div>
-                    <div class="dot five-2"></div>
-                    <div class="dot five-3"></div>
-                    <div class="dot five-4"></div>
-                    <div class="dot five-5"></div>
-                </div>
-                <div class="dice-side side-6">
-                    <div class="dot six-1"></div>
-                    <div class="dot six-2"></div>
-                    <div class="dot six-3"></div>
-                    <div class="dot six-4"></div>
-                    <div class="dot six-5"></div>
-                    <div class="dot six-6"></div>
+
+                <div class="calculator-input">
+                    <div class="number-pad" aria-label="Tastierino numerico">
+                <button type="button" data-digit="1">1</button>
+                <button type="button" data-digit="2">2</button>
+                <button type="button" data-digit="3">3</button>
+                <button type="button" data-digit="4">4</button>
+                <button type="button" data-digit="5">5</button>
+                <button type="button" data-digit="6">6</button>
+                <button type="button" data-digit="7">7</button>
+                <button type="button" data-digit="8">8</button>
+                <button type="button" data-digit="9">9</button>
+                <button class="number-pad__utility" type="button" data-calc-action="backspace" aria-label="Cancella ultima cifra">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 7-5 5 5 5h9V7Z"/><path d="m13 10 4 4M17 10l-4 4"/></svg>
+                </button>
+                <button class="number-pad__compact" type="button" data-digit="0">0</button>
+                <button class="number-pad__zero-shortcut" type="button" data-digit="00">00</button>
+                <button class="number-pad__zero-shortcut number-pad__zero-shortcut--wide" type="button" data-digit="000">000</button>
+                <button class="number-pad__utility" type="button" data-calc-action="clear">C</button>
+                    </div>
+
+                    <div class="calculator-actions">
+                        <button class="calc-action calc-action--damage" type="button" data-operation="damage">
+                            <span class="calc-symbol">−</span><span>Danno</span>
+                        </button>
+                        <button class="calc-action calc-action--heal" type="button" data-operation="heal">
+                            <span class="calc-symbol">+</span><span>Recupera</span>
+                        </button>
+                        <button class="calc-action calc-action--halve" type="button" data-operation="halve">
+                            <span class="calc-symbol">÷2</span><span>Dimezza</span>
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="dice-buttons">
-            <button class="dice-btn" onclick="rollDice()">Ritira</button>
-            <button class="dice-close" onclick="closeDice()">Chiudi</button>
-        </div>
+        </section>
     </div>
-</div>
 
-<!-- Settings overlay -->
-<div class="settings-overlay" id="settingsOverlay" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
-    <div class="settings-panel">
-        <div class="settings-header">
-            <div>
-                <div class="settings-kicker">LP Counter</div>
-                <h2 id="settingsTitle">Impostazioni</h2>
+    <div class="overlay" id="toolOverlay" aria-hidden="true">
+        <div class="overlay-scrim" data-close="tool"></div>
+        <section class="tool-dialog" role="dialog" aria-modal="true" aria-labelledby="toolTitle">
+            <span class="sheet-kicker">Strumento</span>
+            <h2 id="toolTitle">Dado</h2>
+            <div class="tool-result" id="toolResult" aria-live="polite">6</div>
+            <p class="tool-caption" id="toolCaption">Risultato del lancio</p>
+            <div class="tool-actions">
+                <button class="secondary-button" type="button" data-close="tool">Chiudi</button>
+                <button class="primary-button" id="rerollButton" type="button">Rilancia</button>
             </div>
-            <button class="settings-close" onclick="closeSettings()" aria-label="Chiudi impostazioni">&#10005;</button>
-        </div>
+        </section>
+    </div>
 
-        <div class="settings-list">
-            <label class="setting-row" for="soundSetting">
-                <span>
-                    <strong>Suoni</strong>
-                    <small>Riproduci l'effetto quando cambiano i Life Points.</small>
-                </span>
-                <span class="switch">
-                    <input type="checkbox" id="soundSetting" onchange="updateBooleanSetting('soundEnabled', this.checked)">
-                    <span class="switch-track" aria-hidden="true"></span>
-                </span>
-            </label>
+    <div class="overlay sheet-overlay" id="moreOverlay" aria-hidden="true">
+        <div class="overlay-scrim" data-close="more"></div>
+        <section class="bottom-sheet" role="dialog" aria-modal="true" aria-labelledby="moreTitle">
+            <div class="sheet-grabber" aria-hidden="true"></div>
+            <header class="sheet-header">
+                <div><span class="sheet-kicker">Partita</span><h2 id="moreTitle">Altri comandi</h2></div>
+                <button class="icon-button" type="button" data-close="more" aria-label="Chiudi menu">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+                </button>
+            </header>
 
-            <label class="setting-row" for="animationSetting">
-                <span>
-                    <strong>Animazione Life Points</strong>
-                    <small>Mostra uno sfondo animato che cambia colore con i Life Points.</small>
-                </span>
-                <span class="switch">
-                    <input type="checkbox" id="animationSetting" onchange="updateBooleanSetting('lifeAnimationEnabled', this.checked)">
-                    <span class="switch-track" aria-hidden="true"></span>
-                </span>
-            </label>
-
-            <fieldset class="setting-group">
-                <legend>Orientamento calcolatore</legend>
-                <p>In verticale, scegli verso chi deve essere rivolto il tastierino.</p>
-                <label class="orientation-option">
-                    <input type="radio" name="calculatorOrientation" value="fixed" onchange="updateCalculatorOrientation(this.value)">
-                    <span>
-                        <strong>Sempre dal mio lato</strong>
-                        <small>Il calcolatore resta orientato come adesso.</small>
-                    </span>
-                </label>
-                <label class="orientation-option">
-                    <input type="radio" name="calculatorOrientation" value="player" onchange="updateCalculatorOrientation(this.value)">
-                    <span>
-                        <strong>Verso il giocatore</strong>
-                        <small>Si capovolge quando vengono toccati i Life Points dall'altro lato.</small>
-                    </span>
-                </label>
-            </fieldset>
-        </div>
-
-        <div class="settings-storage">
-            <span class="storage-dot" aria-hidden="true"></span>
-            <div>
-                <strong id="settingsStorageTitle">Preferenze della sessione</strong>
-                <small id="settingsStorageText">Le modifiche non verranno salvate alla prossima apertura.</small>
+            <div class="menu-list">
+                <button class="menu-row" type="button" data-menu-action="history">
+                    <span class="menu-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg></span>
+                    <span><strong>Cronologia</strong><small>Rivedi tutte le modifiche ai Life Points</small></span>
+                    <svg class="menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+                </button>
+                <button class="menu-row" type="button" data-menu-action="winner">
+                    <span class="menu-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0Z"/><path d="M8 6H4v2a4 4 0 0 0 4 4M16 6h4v2a4 4 0 0 1-4 4M12 13v5M8 21h8M9 18h6"/></svg></span>
+                    <span><strong>Assegna il duello</strong><small>Aggiorna il punteggio best-of-three</small></span>
+                    <svg class="menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+                </button>
+                <button class="menu-row" type="button" data-menu-action="reset-lp">
+                    <span class="menu-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5"/><path d="M19 12a7 7 0 1 1-2-5"/></svg></span>
+                    <span><strong>Azzera Life Points</strong><small>Ripristina entrambi i giocatori</small></span>
+                    <svg class="menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+                </button>
+                <button class="menu-row menu-row--danger" type="button" data-menu-action="reset-match">
+                    <span class="menu-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v14H5zM9 9l6 6M15 9l-6 6"/></svg></span>
+                    <span><strong>Nuova partita</strong><small>Azzera punteggio, timer e cronologia</small></span>
+                    <svg class="menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+                </button>
+                <button class="menu-row" type="button" data-menu-action="settings">
+                    <span class="menu-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.5-2.4 1A8 8 0 0 0 15 6l-.3-2.6h-4L10.4 6A8 8 0 0 0 8 7L5.7 6 3.6 9.5l2 1.5a7 7 0 0 0 0 2l-2 1.5L5.7 18 8 17a8 8 0 0 0 2.4 1l.3 2.6h4L15 18a8 8 0 0 0 2.4-1l2.4 1 2-3.5-2-1.5a7 7 0 0 0 .2-1Z"/></svg></span>
+                    <span><strong>Impostazioni</strong><small>Personalizza partita, interazione e aspetto</small></span>
+                    <svg class="menu-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+                </button>
             </div>
-            <button id="enableCookiesBtn" class="storage-action" onclick="acceptCookies(true)">Salva</button>
+        </section>
+    </div>
+
+    <div class="overlay sheet-overlay" id="historyOverlay" aria-hidden="true">
+        <div class="overlay-scrim" data-close="history"></div>
+        <section class="bottom-sheet bottom-sheet--tall" role="dialog" aria-modal="true" aria-labelledby="historyTitle">
+            <div class="sheet-grabber" aria-hidden="true"></div>
+            <header class="sheet-header">
+                <div><span class="sheet-kicker">Partita corrente</span><h2 id="historyTitle">Cronologia LP</h2></div>
+                <button class="icon-button" type="button" data-close="history" aria-label="Chiudi cronologia">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+                </button>
+            </header>
+            <div class="history-list" id="historyList"></div>
+            <nav class="history-pagination" id="historyPagination" aria-label="Pagine cronologia">
+                <button class="secondary-button" id="historyPrevious" type="button">Precedenti</button>
+                <span id="historyPageInfo">1 / 1</span>
+                <button class="secondary-button" id="historyNext" type="button">Successive</button>
+            </nav>
+        </section>
+    </div>
+
+    <div class="overlay" id="winnerOverlay" aria-hidden="true">
+        <div class="overlay-scrim" data-close="winner"></div>
+        <section class="choice-dialog" role="dialog" aria-modal="true" aria-labelledby="winnerTitle">
+            <span class="sheet-kicker">Fine duello</span>
+            <h2 id="winnerTitle">Chi ha vinto?</h2>
+            <p>Il vincitore riceverà un punto e inizierà il duello successivo.</p>
+            <div class="winner-choices">
+                <button type="button" data-winner="1"><span class="winner-dot winner-dot--one"></span><strong id="winnerName1">Giocatore 1</strong></button>
+                <button type="button" data-winner="2"><span class="winner-dot winner-dot--two"></span><strong id="winnerName2">Giocatore 2</strong></button>
+            </div>
+            <button class="secondary-button secondary-button--full" type="button" data-close="winner">Annulla</button>
+        </section>
+    </div>
+
+    <div class="overlay settings-overlay" id="settingsOverlay" aria-hidden="true">
+        <div class="settings-page" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+            <header class="settings-page__header">
+                <button class="icon-button" type="button" data-close="settings" aria-label="Chiudi impostazioni">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+                </button>
+                <div><span class="sheet-kicker">LP Counter</span><h2 id="settingsTitle">Impostazioni</h2></div>
+            </header>
+
+            <nav class="settings-tabs" aria-label="Sezioni impostazioni">
+                <button class="is-active" type="button" data-settings-tab="match">Partita</button>
+                <button type="button" data-settings-tab="interaction">Comandi</button>
+                <button type="button" data-settings-tab="appearance">Aspetto</button>
+                <button type="button" data-settings-tab="privacy">Privacy</button>
+            </nav>
+
+            <div class="settings-content">
+                <section class="settings-section is-active" data-settings-section="match">
+                    <h3>Partita</h3>
+                    <label class="field-row"><span><strong>Nome giocatore 1</strong><small>Lato superiore</small></span><input id="settingName1" type="text" maxlength="18" autocomplete="off"></label>
+                    <label class="field-row"><span><strong>Nome giocatore 2</strong><small>Lato inferiore</small></span><input id="settingName2" type="text" maxlength="18" autocomplete="off"></label>
+                    <label class="field-row"><span><strong>Life Points iniziali</strong><small>Applicati al prossimo reset</small></span><select id="settingStartLp"><option value="8000">8000</option><option value="4000">4000</option><option value="12000">12000</option></select></label>
+                    <label class="field-row"><span><strong>Durata duello</strong><small>Timer a scalare</small></span><select id="settingTimerMinutes"><option value="40">40 minuti</option><option value="45">45 minuti</option><option value="50">50 minuti</option><option value="60">60 minuti</option></select></label>
+                    <label class="setting-toggle"><span><strong>Avvisi temporali</strong><small>Notifica a 10, 5 e 1 minuto</small></span><input id="settingTimeAlerts" type="checkbox"><i aria-hidden="true"></i></label>
+                </section>
+
+                <section class="settings-section" data-settings-section="interaction" hidden>
+                    <h3>Interazione</h3>
+                    <label class="setting-toggle"><span><strong>Suoni</strong><small>Effetti LP e avvisi del timer</small></span><input id="settingSound" type="checkbox"><i aria-hidden="true"></i></label>
+                    <label class="setting-toggle"><span><strong>Feedback aptico</strong><small>Vibrazione leggera sulle azioni</small></span><input id="settingHaptics" type="checkbox"><i aria-hidden="true"></i></label>
+                    <label class="setting-toggle"><span><strong>Schermo sempre acceso</strong><small>Attivo durante il timer</small></span><input id="settingWakeLock" type="checkbox"><i aria-hidden="true"></i></label>
+                    <label class="setting-toggle"><span><strong>Inserimento rapido</strong><small>Una cifra suggerisce due zeri sbiaditi</small></span><input id="settingSmartHundreds" type="checkbox"><i aria-hidden="true"></i></label>
+                    <label class="field-row"><span><strong>Orientamento calcolatore</strong><small>In modalità verticale</small></span><select id="settingCalculatorOrientation"><option value="player">Verso il giocatore</option><option value="fixed">Sempre dal mio lato</option></select></label>
+                </section>
+
+                <section class="settings-section" data-settings-section="appearance" hidden>
+                    <h3>Aspetto</h3>
+                    <label class="setting-toggle"><span><strong>Gradiente dinamico LP</strong><small>Verde ad alti LP, rosso vicino allo zero</small></span><input id="settingLifeGradient" type="checkbox"><i aria-hidden="true"></i></label>
+                    <label class="setting-toggle"><span><strong>Movimento gradiente</strong><small>Anima lentamente lo sfondo dei giocatori</small></span><input id="settingAnimations" type="checkbox"><i aria-hidden="true"></i></label>
+                    <label class="field-row"><span><strong>Intensità animazione</strong><small>Regola la presenza dello sfondo</small></span><select id="settingAnimationIntensity"><option value="subtle">Discreta</option><option value="normal">Normale</option><option value="strong">Intensa</option></select></label>
+                    <label class="field-row"><span><strong>Colore giocatore 1</strong><small>Indicatore e sfondo alternativo</small></span><input id="settingColor1" class="color-input" type="color"></label>
+                    <label class="field-row"><span><strong>Colore giocatore 2</strong><small>Indicatore e sfondo alternativo</small></span><input id="settingColor2" class="color-input" type="color"></label>
+                    <label class="setting-toggle"><span><strong>Contrasto elevato</strong><small>Testi e controlli più evidenti</small></span><input id="settingHighContrast" type="checkbox"><i aria-hidden="true"></i></label>
+                </section>
+
+                <section class="settings-section settings-section--storage" data-settings-section="privacy" hidden>
+                    <h3>Privacy e preferenze</h3>
+                    <div class="storage-status"><span class="storage-status__dot" aria-hidden="true"></span><span><strong id="storageTitle">Preferenze della sessione</strong><small id="storageDescription">Le modifiche non sono salvate sul dispositivo.</small></span></div>
+                    <button class="secondary-button secondary-button--full" id="enableStorageButton" type="button">Consenti e salva preferenze</button>
+                    <button class="text-button" id="clearStorageButton" type="button" hidden>Elimina preferenze salvate</button>
+                </section>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- Cookie consent -->
-<div class="cookie-overlay" id="cookieOverlay" role="dialog" aria-modal="true" aria-labelledby="cookieTitle">
-    <div class="cookie-box">
-        <div class="cookie-icon" aria-hidden="true">LP</div>
-        <h2 id="cookieTitle">Salvare le tue preferenze?</h2>
-        <p>Questa app usa esclusivamente cookie facoltativi per ricordare suoni, animazioni e orientamento del calcolatore. Nessun tracciamento o pubblicità.</p>
-        <p class="cookie-note">Se rifiuti, l'app funziona normalmente ma dovrai reimpostare le preferenze a ogni apertura.</p>
-        <div class="cookie-buttons">
-            <button class="cookie-btn cookie-reject" onclick="rejectCookies()">Rifiuta</button>
-            <button class="cookie-btn cookie-accept" onclick="acceptCookies(false)">Accetta</button>
-        </div>
+    <div class="overlay" id="confirmOverlay" aria-hidden="true">
+        <div class="overlay-scrim"></div>
+        <section class="confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle">
+            <span class="sheet-kicker">Conferma</span>
+            <h2 id="confirmTitle">Nuova partita?</h2>
+            <p id="confirmDescription">Punteggio, timer e cronologia verranno azzerati.</p>
+            <div class="confirm-actions">
+                <button class="secondary-button" id="confirmCancel" type="button">Annulla</button>
+                <button class="danger-button" id="confirmAccept" type="button">Conferma</button>
+            </div>
+        </section>
     </div>
-</div>
 
-<!-- Confirm overlay -->
-<div class="confirm-overlay" id="confirmOverlay">
-    <div class="confirm-box">
-        <p id="confirmText">Sei sicuro?</p>
-        <div class="confirm-buttons">
-            <button class="confirm-btn confirm-btn-cancel" onclick="closeConfirm()">Annulla</button>
-            <button class="confirm-btn confirm-btn-ok" id="confirmOk">Conferma</button>
-        </div>
+    <div class="overlay cookie-overlay" id="cookieOverlay" aria-hidden="true">
+        <div class="overlay-scrim"></div>
+        <section class="cookie-dialog" role="dialog" aria-modal="true" aria-labelledby="cookieTitle">
+            <span class="sheet-kicker">Preferenze locali</span>
+            <h2 id="cookieTitle">Vuoi salvare le impostazioni?</h2>
+            <p>Usiamo solo cookie facoltativi per ricordare le tue preferenze. Nessun tracciamento e nessuna pubblicità.</p>
+            <p class="cookie-dialog__note">Se rifiuti, l’app continuerà a funzionare ma le modifiche dureranno soltanto per questa apertura.</p>
+            <div class="cookie-actions">
+                <button class="secondary-button" id="rejectCookies" type="button">Rifiuta</button>
+                <button class="primary-button" id="acceptCookies" type="button">Accetta</button>
+            </div>
+        </section>
     </div>
-</div>
 
-<script src="script.js?v=3"></script>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <div class="sr-only" id="liveRegion" aria-live="assertive"></div>
 
+    <script src="app.js?v=8"></script>
 </body>
 </html>
