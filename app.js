@@ -537,7 +537,7 @@ function awardGame(player) {
     }
 
     state.gameNumber = Math.min(3, state.wins[1] + state.wins[2] + 1);
-    resetLifePoints({ resetTimerToo: true });
+    resetLifePoints();
     renderMatchState();
     showToast(playerName(player) + ' vince il duello. Inizia il Duello ' + state.gameNumber);
 }
