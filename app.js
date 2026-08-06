@@ -326,18 +326,30 @@ function renderPlayers() {
 
 function renderPlayer(player, visualLife = state.life[player]) {
     const life = Math.max(0, Math.round(visualLife));
+    renderLifeNumber(player, life);
+    renderPlayerVisuals(player, life);
+}
+
+function renderLifeNumber(player, visualLife) {
+    const life = Math.max(0, Math.round(visualLife));
+    const animation = lifeAnimations[player];
+    if (animation.displayed === life) return;
+
+    elements['lifeValue' + player].textContent = String(life);
+    animation.displayed = life;
+}
+
+function renderPlayerVisuals(player, life) {
     const start = state.settings.startLp;
     const ratio = Math.max(0, Math.min(life / start, 1));
     const dangerRatio = Math.max(0, Math.min((0.28 - ratio) / 0.28, 1));
     const panel = elements['playerPanel' + player];
-    const value = elements['lifeValue' + player];
     const track = elements['lifeTrack' + player];
     const lifeColor = state.settings.lifeGradientEnabled
         ? lifeRatioColor(ratio)
         : (dangerRatio > 0 ? mixHexColors(playerColor(player), '#ff6262', dangerRatio) : playerColor(player));
     const ambientSecondary = state.settings.lifeGradientEnabled ? lifeColor : playerColor(player);
 
-    value.textContent = String(life);
     track.style.transform = 'scaleX(' + ratio + ')';
     panel.style.setProperty('--life-ratio', ratio.toFixed(3));
     panel.style.setProperty('--danger-ratio', dangerRatio.toFixed(3));
@@ -348,7 +360,6 @@ function renderPlayer(player, visualLife = state.life[player]) {
     panel.style.setProperty('--ambient-speed', (11 - dangerRatio * 3).toFixed(1) + 's');
     panel.classList.toggle('is-critical', life > 0 && ratio <= 0.25);
     panel.classList.toggle('is-defeated', life === 0);
-    lifeAnimations[player].displayed = life;
 }
 
 function cancelLifeAnimation(player) {
@@ -370,13 +381,14 @@ function animateLifeValue(player, from, to) {
         && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     cancelLifeAnimation(player);
+    renderPlayerVisuals(player, to);
 
     if (visualFrom === to || reduceMotion) {
-        renderPlayer(player, to);
+        renderLifeNumber(player, to);
         return;
     }
 
-    const duration = 2000;
+    const duration = 420;
     const difference = to - visualFrom;
     const directionClass = difference < 0 ? 'is-counting-down' : 'is-counting-up';
     let startedAt = null;
@@ -387,7 +399,7 @@ function animateLifeValue(player, from, to) {
         if (startedAt === null) startedAt = timestamp;
         const progress = Math.min((timestamp - startedAt) / duration, 1);
         const eased = 1 - Math.pow(1 - progress, 3);
-        renderPlayer(player, visualFrom + difference * eased);
+        renderLifeNumber(player, visualFrom + difference * eased);
 
         if (progress < 1) {
             animation.frame = requestAnimationFrame(tick);
@@ -395,7 +407,7 @@ function animateLifeValue(player, from, to) {
         }
 
         animation.frame = null;
-        renderPlayer(player, to);
+        renderLifeNumber(player, to);
         animation.cleanupTimer = setTimeout(() => {
             value.classList.remove(directionClass);
             animation.cleanupTimer = null;
